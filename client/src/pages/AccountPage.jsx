@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBetting } from '../context/BettingContext';
 import StatusBadge from '../components/common/StatusBadge';
 import {
@@ -24,6 +24,8 @@ import {
   Users,
   Copy,
   Check,
+  Mail,
+  RefreshCw,
 } from 'lucide-react';
 
 /**
@@ -37,6 +39,7 @@ export default function AccountPage({ onBack }) {
     isAuthenticated,
     authMode,
     setAuthMode,
+    sendRegistrationCode,
     registerAccount,
     loginAccount,
     logoutAccount,
@@ -62,6 +65,38 @@ export default function AccountPage({ onBack }) {
   const [ageVerified, setAgeVerified] = useState(true);
   const [formError, setFormError] = useState(null);
 
+  // 5-minute Email Authentication Code State (Resend)
+  const [regStep, setRegStep] = useState('form'); // 'form' | 'code'
+  const [authCode, setAuthCode] = useState('');
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // 5-minute countdown timer for code expiration
+  useEffect(() => {
+    if (regStep !== 'code' || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [regStep, timeLeft]);
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const formatCountdown = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
   // Team creation state (Only for phone-registered users)
   const [newTeamName, setNewTeamName] = useState('');
   const [teamError, setTeamError] = useState(null);
@@ -77,12 +112,17 @@ export default function AccountPage({ onBack }) {
   const [savedFeedback, setSavedFeedback] = useState(null);
   const [txFilter, setTxFilter] = useState('ALL');
 
-  const handleRegisterSubmit = async (e) => {
+  // Step 1: Initiate registration & send 5-minute authentication code via Resend
+  const handleInitiateRegister = async (e) => {
     e.preventDefault();
     setFormError(null);
 
     if (!fullName.trim() || !email.trim() || !password) {
       setFormError('Please fill in your full name, email address, and password.');
+      return;
+    }
+    if (!email.includes('@') || !email.includes('.')) {
+      setFormError('Please enter a valid email address.');
       return;
     }
     if (contactMethod === 'teamCode' && !teamCode.trim()) {
@@ -106,15 +146,69 @@ export default function AccountPage({ onBack }) {
       return;
     }
 
+    setIsSendingCode(true);
+    const res = await sendRegistrationCode({
+      email: email.trim(),
+      fullName: fullName.trim(),
+    });
+    setIsSendingCode(false);
+
+    if (res.success) {
+      setRegStep('code');
+      setTimeLeft(res.expiresInSeconds || 300);
+      setResendCooldown(30);
+      setAuthCode('');
+    } else if (res.error) {
+      setFormError(res.error);
+    }
+  };
+
+  // Resend code handler
+  const handleResendCode = async () => {
+    if (resendCooldown > 0 || isSendingCode) return;
+    setFormError(null);
+    setIsSendingCode(true);
+    const res = await sendRegistrationCode({
+      email: email.trim(),
+      fullName: fullName.trim(),
+    });
+    setIsSendingCode(false);
+
+    if (res.success) {
+      setTimeLeft(res.expiresInSeconds || 300);
+      setResendCooldown(30);
+    } else if (res.error) {
+      setFormError(res.error);
+    }
+  };
+
+  // Step 2: Verify 6-digit code and complete account registration
+  const handleVerifyAndRegister = async (e) => {
+    e.preventDefault();
+    setFormError(null);
+
+    const cleanCode = authCode.replace(/\D/g, '').trim();
+    if (cleanCode.length !== 6) {
+      setFormError('Please enter the full 6-digit authentication code sent to your email.');
+      return;
+    }
+    if (timeLeft <= 0) {
+      setFormError('Your authentication code has expired (valid for 5 minutes). Please click "Resend Code".');
+      return;
+    }
+
+    setIsVerifyingCode(true);
     const res = await registerAccount({
-      fullName,
-      email,
-      phone: contactMethod === 'phone' ? phone : null,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: contactMethod === 'phone' ? phone.trim() : null,
       teamCode: contactMethod === 'teamCode' ? teamCode.trim().toUpperCase() : null,
       password,
+      code: cleanCode,
     });
+    setIsVerifyingCode(false);
+
     if (res.success && betslip.length > 0) {
-      // Return to board so user can immediately place their queued bet
       setCurrentView('home');
     } else if (!res.success && res.error) {
       setFormError(res.error);
@@ -233,6 +327,7 @@ export default function AccountPage({ onBack }) {
               type="button"
               onClick={() => {
                 setAuthMode('register');
+                setRegStep('form');
                 setFormError(null);
               }}
               className={[
@@ -249,6 +344,7 @@ export default function AccountPage({ onBack }) {
               type="button"
               onClick={() => {
                 setAuthMode('login');
+                setRegStep('form');
                 setFormError(null);
               }}
               className={[
@@ -271,145 +367,271 @@ export default function AccountPage({ onBack }) {
           )}
 
           {authMode === 'register' ? (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3">
-              <div>
-                <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
-                  Full Legal Name (As on UK ID / Passport) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Oliver Harrison"
-                  className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            regStep === 'form' ? (
+              <form onSubmit={handleInitiateRegister} className="space-y-3">
                 <div>
                   <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
-                    Email Address *
+                    Full Legal Name (As on UK ID / Passport) *
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@domain.co.uk"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Oliver Harrison"
                     className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
                   />
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8]">
-                      {contactMethod === 'phone' ? 'UK Mobile Number *' : 'Team Code *'}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
+                      Email Address (Auth Code Sent Here) *
                     </label>
-                    <div className="flex items-center gap-1 bg-[#161920] border border-[#2A2E35] rounded-[2px] p-0.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setContactMethod('phone');
-                          setFormError(null);
-                        }}
-                        className={[
-                          'px-1.5 py-0.5 rounded-[2px] text-[10px] font-bold uppercase tracking-wider transition-colors',
-                          contactMethod === 'phone'
-                            ? 'bg-[#FFC107] text-[#111418]'
-                            : 'text-[#94A3B8] hover:text-[#F8F9FA]',
-                        ].join(' ')}
-                      >
-                        Phone
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setContactMethod('teamCode');
-                          setFormError(null);
-                        }}
-                        className={[
-                          'px-1.5 py-0.5 rounded-[2px] text-[10px] font-bold uppercase tracking-wider transition-colors',
-                          contactMethod === 'teamCode'
-                            ? 'bg-[#FFC107] text-[#111418]'
-                            : 'text-[#94A3B8] hover:text-[#F8F9FA]',
-                        ].join(' ')}
-                      >
-                        Team Code
-                      </button>
-                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@domain.co.uk"
+                      className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
+                    />
                   </div>
 
-                  {contactMethod === 'phone' ? (
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8]">
+                        {contactMethod === 'phone' ? 'UK Mobile Number *' : 'Team Code *'}
+                      </label>
+                      <div className="flex items-center gap-1 bg-[#161920] border border-[#2A2E35] rounded-[2px] p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContactMethod('phone');
+                            setFormError(null);
+                          }}
+                          className={[
+                            'px-1.5 py-0.5 rounded-[2px] text-[10px] font-bold uppercase tracking-wider transition-colors',
+                            contactMethod === 'phone'
+                              ? 'bg-[#FFC107] text-[#111418]'
+                              : 'text-[#94A3B8] hover:text-[#F8F9FA]',
+                          ].join(' ')}
+                        >
+                          Phone
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setContactMethod('teamCode');
+                            setFormError(null);
+                          }}
+                          className={[
+                            'px-1.5 py-0.5 rounded-[2px] text-[10px] font-bold uppercase tracking-wider transition-colors',
+                            contactMethod === 'teamCode'
+                              ? 'bg-[#FFC107] text-[#111418]'
+                              : 'text-[#94A3B8] hover:text-[#F8F9FA]',
+                          ].join(' ')}
+                        >
+                          Team Code
+                        </button>
+                      </div>
+                    </div>
+
+                    {contactMethod === 'phone' ? (
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+44 7700 900077"
+                        className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] tabular-nums text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={teamCode}
+                        onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. ROLAL-UK01"
+                        className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] font-bold uppercase tracking-wider tabular-nums text-[#FFC107] placeholder:text-[#64748B] placeholder:font-normal focus:outline-none"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
+                      Password (Min. 6 chars) *
+                    </label>
                     <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+44 7700 900077"
-                      className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] tabular-nums text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
+                      Confirm Password *
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* 18+ UK Verification Checkbox */}
+                <label className="flex items-start gap-2 p-2.5 rounded-[2px] bg-[#161920] border border-[#2A2E35] cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={ageVerified}
+                    onChange={(e) => setAgeVerified(e.target.checked)}
+                    className="mt-0.5 accent-[#FFC107]"
+                  />
+                  <span className="text-[11px] text-[#94A3B8] leading-snug">
+                    I confirm that I am at least <strong className="text-[#F8F9FA]">18 years of age</strong>, reside in the <strong className="text-[#F8F9FA]">United Kingdom</strong>, and accept the RolalBet UK Terms &amp; Responsible Gambling policy.
+                  </span>
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={isSendingCode}
+                  className="w-full py-2.5 px-4 rounded-[2px] bg-[#00875A] hover:bg-[#00704A] text-white font-bold text-[14px] uppercase tracking-wider transition-colors disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSendingCode ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span>Sending Auth Code...</span>
+                    </>
                   ) : (
-                    <input
-                      type="text"
-                      value={teamCode}
-                      onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
-                      placeholder="e.g. ROLAL-UK01"
-                      className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] font-bold uppercase tracking-wider tabular-nums text-[#FFC107] placeholder:text-[#64748B] placeholder:font-normal focus:outline-none"
-                    />
+                    <>
+                      <Mail className="w-4 h-4" />
+                      <span>Send Authentication Code</span>
+                    </>
                   )}
+                </button>
+              </form>
+            ) : (
+              /* Step 2: 6-Digit Email Verification Code Input */
+              <form onSubmit={handleVerifyAndRegister} className="space-y-4 py-1">
+                <div className="p-3 rounded-[2px] bg-[#161920] border border-[#FFC107]/40 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-[#FFC107]/15 text-[#FFC107] flex items-center justify-center shrink-0 mt-0.5">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[13px] font-bold text-[#F8F9FA] block">
+                      Verify Your Email Address
+                    </span>
+                    <span className="text-[12px] text-[#94A3B8] block mt-0.5 leading-snug">
+                      We sent a 6-digit authentication code to <strong className="text-[#FFC107]">{email}</strong>.
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
-                    Password (Min. 6 chars) *
+                  <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1.5 text-center">
+                    Enter 6-Digit Code
                   </label>
                   <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    autoFocus
+                    maxLength={6}
+                    value={authCode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setAuthCode(val);
+                      setFormError(null);
+                    }}
+                    placeholder="••••••"
+                    className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[4px] px-3 py-3 text-[26px] font-mono font-extrabold tracking-[10px] text-center text-[#FFC107] placeholder:text-[#333C4D] placeholder:tracking-[10px] focus:outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
-                    Confirm Password *
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
-                  />
+                {/* 5-Minute Countdown Expiry Notice */}
+                <div
+                  className={[
+                    'p-2.5 rounded-[2px] border flex items-center justify-between text-[12px]',
+                    timeLeft > 60
+                      ? 'bg-[#161920] border-[#FFC107]/30 text-[#FFC107]'
+                      : timeLeft > 0
+                        ? 'bg-red-500/10 border-red-500/40 text-red-300'
+                        : 'bg-red-500/15 border-red-500 text-red-400 font-bold',
+                  ].join(' ')}
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span>
+                      {timeLeft > 0 ? (
+                        <>
+                          Code expires in <strong className="tabular-nums font-mono font-bold">{formatCountdown(timeLeft)}</strong>
+                        </>
+                      ) : (
+                        <span>Code has expired (5-minute limit exceeded)</span>
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider opacity-75">
+                    5 Min Expiry
+                  </span>
                 </div>
-              </div>
 
-              {/* 18+ UK Verification Checkbox */}
-              <label className="flex items-start gap-2 p-2.5 rounded-[2px] bg-[#161920] border border-[#2A2E35] cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={ageVerified}
-                  onChange={(e) => setAgeVerified(e.target.checked)}
-                  className="mt-0.5 accent-[#FFC107]"
-                />
-                <span className="text-[11px] text-[#94A3B8] leading-snug">
-                  I confirm that I am at least <strong className="text-[#F8F9FA]">18 years of age</strong>, reside in the <strong className="text-[#F8F9FA]">United Kingdom</strong>, and accept the RolalBet UK Terms & Responsible Gambling policy.
-                </span>
-              </label>
+                <button
+                  type="submit"
+                  disabled={isVerifyingCode || authCode.length !== 6 || timeLeft <= 0}
+                  className="w-full py-2.5 px-4 rounded-[2px] bg-[#00875A] hover:bg-[#00704A] text-white font-bold text-[14px] uppercase tracking-wider transition-colors disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isVerifyingCode ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span>Verifying &amp; Creating Account...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Confirm &amp; Create Account</span>
+                    </>
+                  )}
+                </button>
 
-              <button
-                type="submit"
-                className="w-full py-2.5 px-4 rounded-[2px] bg-[#00875A] hover:bg-[#00704A] text-white font-bold text-[14px] uppercase tracking-wider transition-colors"
-              >
-                Create Account
-              </button>
-            </form>
+                <div className="flex items-center justify-between pt-1 text-[11px]">
+                  <button
+                    type="button"
+                    disabled={resendCooldown > 0 || isSendingCode}
+                    onClick={handleResendCode}
+                    className="text-[#94A3B8] hover:text-[#FFC107] font-semibold flex items-center gap-1 disabled:opacity-40 transition-colors"
+                  >
+                    <RefreshCw className={['w-3 h-3', isSendingCode ? 'animate-spin' : ''].join(' ')} />
+                    <span>
+                      {resendCooldown > 0
+                        ? `Resend Code (${resendCooldown}s)`
+                        : isSendingCode
+                          ? 'Sending...'
+                          : 'Resend Code'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRegStep('form');
+                      setFormError(null);
+                    }}
+                    className="text-[#94A3B8] hover:text-[#F8F9FA] underline font-medium"
+                  >
+                    Change Email / Edit Details
+                  </button>
+                </div>
+              </form>
+            )
           ) : (
             <form onSubmit={handleLoginSubmit} className="space-y-3">
               <div>

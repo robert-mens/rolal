@@ -925,10 +925,42 @@ export const BettingProvider = ({ children }) => {
     }
   };
 
-  const registerAccount = async ({ fullName, email, phone, teamCode, password }) => {
+  // Send 6-digit registration authentication code via email (Resend)
+  const sendRegistrationCode = async ({ email, fullName }) => {
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      notify('Please enter a valid email address.', 'error');
+      return { success: false, error: 'Invalid email address' };
+    }
+
+    try {
+      const res = await fetch('/api/auth/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, fullName })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        notify(data.error || 'Failed to send verification email.', 'error');
+        return { success: false, error: data.error || 'Failed to send verification email' };
+      }
+
+      notify(data.message || `Authentication code sent to ${cleanEmail}. Valid for 5 minutes.`, 'success');
+      return { success: true, message: data.message, expiresInSeconds: data.expiresInSeconds || 300 };
+    } catch (err) {
+      notify(`Email service error: ${err.message}`, 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const registerAccount = async ({ fullName, email, phone, teamCode, password, code }) => {
     if (!fullName || !email || !password) {
       notify('Please complete all required registration fields.', 'error');
       return { success: false, error: 'Missing required fields' };
+    }
+    if (!code) {
+      notify('Please enter the 6-digit authentication code sent to your email.', 'error');
+      return { success: false, error: 'Authentication code is required' };
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -938,7 +970,7 @@ export const BettingProvider = ({ children }) => {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email: cleanEmail, phone, teamCode: cleanTeamCode, password })
+        body: JSON.stringify({ fullName, email: cleanEmail, phone, teamCode: cleanTeamCode, password, code: String(code).trim() })
       });
 
       const data = await res.json().catch(() => ({}));
@@ -1245,6 +1277,7 @@ export const BettingProvider = ({ children }) => {
     isAuthenticated,
     authMode,
     setAuthMode,
+    sendRegistrationCode,
     registerAccount,
     loginAccount,
     logoutAccount,

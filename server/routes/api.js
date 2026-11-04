@@ -28,6 +28,7 @@ router.use(['/wallet/gateway', '/admin'], (req, res, next) => {
 const oddsEngine = require('../services/oddsEngine');
 const walletLedger = require('../services/walletLedger');
 const db = require('../services/db');
+const emailService = require('../services/emailService');
 
 // Active Server-Sent Events (SSE) connections
 const sseClients = new Set();
@@ -344,14 +345,71 @@ router.delete('/admin/users/:id', async (req, res) => {
  * POST /api/auth/register
  * Registers a new UK user account in Aiven PostgreSQL
  */
+router.post('/auth/send-code', async (req, res) => {
+  try {
+    const { email, fullName } = req.body;
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
+    }
+
+    const existing = await db.findUserByEmail(cleanEmail);
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        error: 'An account with this email already exists. Please sign in instead.'
+      });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await db.saveEmailVerificationCode(cleanEmail, code);
+
+    await emailService.sendVerificationCodeEmail({
+      email: cleanEmail,
+      code,
+      fullName: fullName || 'Player'
+    });
+
+    res.json({
+      success: true,
+      message: `Authentication code sent to ${cleanEmail}. Valid for 5 minutes.`,
+      expiresInSeconds: 300
+    });
+  } catch (err) {
+    console.error('[API] /auth/send-code error:', err.message);
+    res.status(500).json({
+      success: false,
+      error: `Could not send verification email: ${err.message}`
+    });
+  }
+});
+
 router.post('/auth/register', async (req, res) => {
   try {
-    const { fullName, email, phone, teamCode, password } = req.body;
+    const { fullName, email, phone, teamCode, password, code } = req.body;
     if (!fullName || !email || !password) {
       return res.status(400).json({ success: false, error: 'Full name, email, and password are required' });
     }
 
-    const user = await db.registerUser({ fullName, email, phone, teamCode, password });
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanCode = String(code || '').trim();
+
+    if (!cleanCode) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please enter the 6-digit authentication code sent to your email.'
+      });
+    }
+
+    const verification = await db.verifyEmailCode(cleanEmail, cleanCode);
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        error: verification.error || 'Verification code has expired or is invalid.'
+      });
+    }
+
+    const user = await db.registerUser({ fullName, email: cleanEmail, phone, teamCode, password });
     await walletLedger.hydrateFromDatabase(user.id);
 
     res.status(201).json({

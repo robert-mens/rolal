@@ -134,6 +134,16 @@ async function initDatabase() {
       [JSON.stringify({ enabled: true })]
     );
 
+    // 6. Email Verifications table (for Resend 5-min registration auth codes)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS email_verifications (
+        email VARCHAR(255) PRIMARY KEY,
+        code VARCHAR(16) NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
     // 4. Ensure default UK Demo user exists
     const demoCheck = await client.query(
       `SELECT id FROM users WHERE email = $1 LIMIT 1`,
@@ -689,6 +699,123 @@ async function deleteUserAdmin(userId) {
   return { deletedId: userId };
 }
 
+// In-memory verification cache as fallback/buffer
+const memoryVerificationCodes = new Map();
+
+/**
+ * Saves a 6-digit registration verification code with 5-minute expiry
+ */
+async function saveEmailVerificationCode(email, code) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanCode = String(code || '').trim();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+  // Update in-memory buffer
+  memoryVerificationCodes.set(cleanEmail, {
+    code: cleanCode,
+    expiresAt: expiresAt.getTime()
+  });
+
+  try {
+    await pool.query(
+      `INSERT INTO email_verifications (email, code, expires_at, created_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (email) DO UPDATE SET
+         code = EXCLUDED.code,
+         expires_at = EXCLUDED.expires_at,
+         created_at = NOW()`,
+      [cleanEmail, cleanCode, expiresAt]
+    );
+  } catch (err) {
+    console.warn('[Aiven PostgreSQL] email_verifications table notice:', err.message);
+  }
+
+  return { email: cleanEmail, expiresAt };
+}
+
+/**
+ * Validates a 6-digit registration verification code
+ * Code expires strictly in 5 minutes!
+ */
+async function verifyEmailCode(email, code) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanCode = String(code || '').trim();
+  const now = Date.now();
+
+  let record = null;
+
+  try {
+    const res = await pool.query(
+      `SELECT email, code, expires_at FROM email_verifications WHERE email = $1 LIMIT 1`,
+      [cleanEmail]
+    );
+    if (res.rowCount > 0) {
+      record = {
+        code: String(res.rows[0].code).trim(),
+        expiresAt: new Date(res.rows[0].expires_at).getTime()
+      };
+    }
+  } catch (err) {
+    console.warn('[Aiven PostgreSQL] email_verifications query notice:', err.message);
+  }
+
+  // Fallback to in-memory store if DB query had no row or error
+  if (!record && memoryVerificationCodes.has(cleanEmail)) {
+    record = memoryVerificationCodes.get(cleanEmail);
+  }
+
+  if (!record) {
+    return {
+      valid: false,
+      error: 'No verification code was requested for this email. Please click "Send Verification Code".'
+    };
+  }
+
+  if (record.code !== cleanCode) {
+    return {
+      valid: false,
+      error: 'Invalid 6-digit verification code. Please check your email and try again.'
+    };
+  }
+
+  if (record.expiresAt < now) {
+    // Delete expired code
+    memoryVerificationCodes.delete(cleanEmail);
+    try {
+      await pool.query(`DELETE FROM email_verifications WHERE email = $1`, [cleanEmail]);
+    } catch (e) {}
+
+    return {
+      valid: false,
+      error: 'Verification code has expired (codes expire after 5 minutes). Please request a new code.'
+    };
+  }
+
+  // Code is valid! Consume it so it cannot be used again
+  memoryVerificationCodes.delete(cleanEmail);
+  try {
+    await pool.query(`DELETE FROM email_verifications WHERE email = $1`, [cleanEmail]);
+  } catch (e) {}
+
+  return { valid: true };
+}
+
+/**
+ * Finds user by email address
+ */
+async function findUserByEmail(email) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  try {
+    const res = await pool.query(
+      `SELECT id, full_name, email FROM users WHERE email = $1 LIMIT 1`,
+      [cleanEmail]
+    );
+    return res.rowCount > 0 ? res.rows[0] : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 module.exports = {
   pool,
   initDatabase,
@@ -707,5 +834,8 @@ module.exports = {
   getAllTeamsAdmin,
   updateUserBalanceAdmin,
   deleteUserAdmin,
+  saveEmailVerificationCode,
+  verifyEmailCode,
+  findUserByEmail,
   isDatabaseConnected: () => isConnected
 };
