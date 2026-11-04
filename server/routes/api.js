@@ -76,49 +76,64 @@ router.get('/db-status', async (req, res) => {
   }
 });
 
-// Cache external IP lookup for 60 seconds to keep location checks fast
-let cachedGeoInfo = null;
-let cachedGeoTimestamp = 0;
+// Cache geo lookups per IP for 5 minutes (keeps location checks fast)
+const geoCache = new Map();
+const GEO_TTL_MS = 5 * 60 * 1000;
 
-async function resolveVisitorLocation(req) {
-  // Check CDN/proxy country headers first
-  const cfCountry = req.headers['cf-ipcountry'] || req.headers['x-vercel-ip-country'] || req.headers['x-country-code'];
-  if (cfCountry && cfCountry !== 'XX') {
-    const code = String(cfCountry).trim().toUpperCase();
-    return {
-      countryCode: code,
-      countryName: code === 'GB' || code === 'UK' ? 'United Kingdom' : code,
-      city: req.headers['x-vercel-ip-city'] || '',
-      ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
-    };
+function isPrivateIp(ip) {
+  const v = String(ip || '').replace(/^::ffff:/, '');
+  return (
+    !v ||
+    v === '::1' ||
+    v === '127.0.0.1' ||
+    v.startsWith('10.') ||
+    v.startsWith('192.168.') ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(v) ||
+    v.startsWith('fc') ||
+    v.startsWith('fd') ||
+    v.startsWith('fe80')
+  );
+}
+
+function getClientIp(req) {
+  const h = req.headers || {};
+  const candidates = [
+    h['x-nf-client-connection-ip'],
+    h['cf-connecting-ip'],
+    h['x-real-ip'],
+    String(h['x-forwarded-for'] || '').split(',')[0],
+    req.socket && req.socket.remoteAddress
+  ];
+  for (const c of candidates) {
+    const v = String(c || '').trim().replace(/^::ffff:/, '');
+    if (v) return v;
   }
+  return '';
+}
 
-  const now = Date.now();
-  if (cachedGeoInfo && now - cachedGeoTimestamp < 60000) {
-    return cachedGeoInfo;
-  }
-
-  // Query public IP geolocation service
+async function lookupIpGeo(ip) {
+  // ip = '' means "look up the machine this server runs on" (only used for local development)
+  const suffix = ip ? encodeURIComponent(ip) : '';
   const endpoints = [
     {
-      url: 'https://ipwho.is/',
+      url: `https://ipwho.is/${suffix}`,
       parse: (d) =>
         d && d.success !== false && d.country_code
-          ? { countryCode: String(d.country_code).toUpperCase(), countryName: d.country || d.country_code, city: d.city || '', ip: d.ip || '' }
+          ? { countryCode: String(d.country_code).toUpperCase(), countryName: d.country || d.country_code, city: d.city || '', ip: d.ip || ip }
           : null
     },
     {
-      url: 'https://ipapi.co/json/',
+      url: ip ? `https://ipapi.co/${suffix}/json/` : 'https://ipapi.co/json/',
       parse: (d) =>
         d && d.country_code
-          ? { countryCode: String(d.country_code).toUpperCase(), countryName: d.country_name || d.country_code, city: d.city || '', ip: d.ip || '' }
+          ? { countryCode: String(d.country_code).toUpperCase(), countryName: d.country_name || d.country_code, city: d.city || '', ip: d.ip || ip }
           : null
     },
     {
-      url: 'http://ip-api.com/json/?fields=status,country,countryCode,city,query',
+      url: `http://ip-api.com/json/${suffix}?fields=status,country,countryCode,city,query`,
       parse: (d) =>
         d && d.status === 'success' && d.countryCode
-          ? { countryCode: String(d.countryCode).toUpperCase(), countryName: d.country || d.countryCode, city: d.city || '', ip: d.query || '' }
+          ? { countryCode: String(d.countryCode).toUpperCase(), countryName: d.country || d.countryCode, city: d.city || '', ip: d.query || ip }
           : null
     }
   ];
@@ -130,25 +145,68 @@ async function resolveVisitorLocation(req) {
       const response = await fetch(ep.url, { signal: controller.signal });
       clearTimeout(timeout);
       if (response.ok) {
-        const json = await response.json();
-        const parsed = ep.parse(json);
-        if (parsed && parsed.countryCode) {
-          cachedGeoInfo = parsed;
-          cachedGeoTimestamp = now;
-          return parsed;
-        }
+        const parsed = ep.parse(await response.json());
+        if (parsed && parsed.countryCode) return parsed;
       }
     } catch (e) {
       // try next provider
     }
   }
+  return null;
+}
 
-  return cachedGeoInfo || {
-    countryCode: 'UNKNOWN',
-    countryName: 'Outside United Kingdom',
-    city: '',
-    ip: req.socket.remoteAddress || ''
-  };
+async function resolveVisitorLocation(req) {
+  const headers = req.headers || {};
+  const clientIp = getClientIp(req);
+
+  // 1. Netlify edge geolocation of the *visitor* (base64 JSON), most reliable when hosted on Netlify
+  if (headers['x-nf-geo']) {
+    try {
+      const geo = JSON.parse(Buffer.from(String(headers['x-nf-geo']), 'base64').toString('utf8'));
+      const code = String(geo?.country?.code || '').toUpperCase();
+      if (code) {
+        return {
+          countryCode: code,
+          countryName: geo.country.name || (code === 'GB' ? 'United Kingdom' : code),
+          city: geo.city || '',
+          ip: clientIp
+        };
+      }
+    } catch (e) {
+      // fall through
+    }
+  }
+
+  // 2. Other CDN country headers (Cloudflare / Vercel)
+  const cdnCountry = headers['cf-ipcountry'] || headers['x-vercel-ip-country'];
+  if (cdnCountry && cdnCountry !== 'XX' && cdnCountry !== 'T1') {
+    const code = String(cdnCountry).trim().toUpperCase();
+    return {
+      countryCode: code,
+      countryName: code === 'GB' || code === 'UK' ? 'United Kingdom' : code,
+      city: headers['x-vercel-ip-city'] || '',
+      ip: clientIp
+    };
+  }
+
+  // 3. Look up the VISITOR's own IP (never the server's IP when hosted)
+  const hosted = Boolean(process.env.VERCEL || process.env.NETLIFY);
+  const lookupKey = isPrivateIp(clientIp) ? (hosted ? '' : 'local') : clientIp;
+  if (lookupKey === '' && hosted) {
+    // Hosted but no usable visitor IP: fail closed rather than guessing from the server's location
+    return { countryCode: 'UNKNOWN', countryName: 'Unknown location', city: '', ip: '' };
+  }
+
+  const cached = geoCache.get(lookupKey);
+  if (cached && Date.now() - cached.at < GEO_TTL_MS) return cached.value;
+
+  // Local development: the browser and server share a machine, so look up this machine's public IP
+  const value = await lookupIpGeo(lookupKey === 'local' ? '' : clientIp);
+  if (value) {
+    geoCache.set(lookupKey, { value, at: Date.now() });
+    return value;
+  }
+  return cached?.value || { countryCode: 'UNKNOWN', countryName: 'Unknown location', city: '', ip: clientIp };
 }
 
 /**
