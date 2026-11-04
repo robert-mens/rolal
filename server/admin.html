@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RolalBet Admin Console</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #111418;
+      color: #F8F9FA;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      background: #1E222A;
+      border-bottom: 1px solid #2A2E35;
+      padding: 12px 20px;
+    }
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      width: 32px;
+      height: 32px;
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFC107;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .brand h1 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .brand span {
+      font-size: 11px;
+      color: #94A3B8;
+      display: block;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn {
+      padding: 7px 13px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      border: 1px solid #2A2E35;
+      background: #232832;
+      color: #F8F9FA;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn:hover {
+      background: #2B313D;
+    }
+    .btn-green {
+      background: #00875A;
+      border-color: #00875A;
+      color: #FFFFFF;
+    }
+    .btn-green:hover {
+      background: #00704A;
+    }
+    .btn-red {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #F87171;
+    }
+    .btn-red:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    .btn-gold {
+      color: #FFC107;
+      background: #161920;
+    }
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 18px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .card {
+      background: #1E222A;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      padding: 16px;
+    }
+    .protection-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 8px;
+    }
+    .pill-on {
+      background: #00875A;
+      color: #FFFFFF;
+    }
+    .pill-off {
+      background: #232832;
+      color: #94A3B8;
+      border: 1px solid #2A2E35;
+    }
+    .muted {
+      color: #94A3B8;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .toolbar h2 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .search-input {
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      padding: 7px 11px;
+      color: #F8F9FA;
+      font-size: 12px;
+      width: 260px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: #FFC107;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      background: #161920;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+    th {
+      background: #1E222A;
+      color: #94A3B8;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 12px;
+      border-bottom: 1px solid #2A2E35;
+    }
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #2A2E35;
+      vertical-align: middle;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: rgba(30, 34, 42, 0.65);
+    }
+    .balance-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .balance-input {
+      width: 96px;
+      background: #111418;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      padding: 5px 8px;
+      color: #F8F9FA;
+      font-weight: 700;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      outline: none;
+    }
+    .balance-input:focus {
+      border-color: #FFC107;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .tag-phone {
+      background: rgba(0, 135, 90, 0.18);
+      color: #00E676;
+      border: 1px solid rgba(0, 135, 90, 0.4);
+    }
+    .tag-team {
+      background: #232832;
+      color: #CBD5E1;
+      border: 1px solid #2A2E35;
+    }
+    .notice {
+      padding: 10px 14px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 700;
+      display: none;
+    }
+    .notice.show {
+      display: block;
+    }
+    .notice.success {
+      background: #1E222A;
+      border: 1px solid #00875A;
+      color: #00E676;
+    }
+    .notice.error {
+      background: #1E222A;
+      border: 1px solid #EF4444;
+      color: #F87171;
+    }
+    .teams-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .team-item {
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .code-badge {
+      background: #1E222A;
+      border: 1px solid #2A2E35;
+      color: #FFC107;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-badge">RB</div>
+        <div>
+          <h1>RolalBet Standalone Admin Server</h1>
+          <span>Dedicated User Management &amp; UK Geo-Protection Control (Port 4001)</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" onclick="loadOverview()">Refresh Data</button>
+        <a class="btn btn-gold" href="http://localhost:5173" target="_blank" rel="noopener">Open Sportsbook (5173) ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="noticeBox" class="notice"></div>
+
+    <!-- 1. UK-ONLY LOCATION PROTECTION CARD -->
+    <div class="card protection-bar">
+      <div>
+        <div style="display:flex;align-items:center;">
+          <strong style="font-size:14px;text-transform:uppercase;letter-spacing:0.04em;">UK-Only Location Protection</strong>
+          <span id="protectionBadge" class="status-pill pill-on">Active (UK Only)</span>
+        </div>
+        <p class="muted">
+          When turned ON, visitors outside the United Kingdom (<code>GB</code> / <code>UK</code>) are blocked on the main sportsbook site (<code>http://localhost:5173</code>).
+        </p>
+        <p id="detectedGeo" class="muted" style="font-size:11px;color:#64748B;"></p>
+      </div>
+      <button id="toggleBtn" class="btn btn-red" onclick="toggleUkProtection()">
+        Turn Protection OFF
+      </button>
+    </div>
+
+    <!-- 2. USERS MANAGEMENT TABLE -->
+    <div class="card">
+      <div class="toolbar">
+        <h2 id="usersHeading">Registered Users (0)</h2>
+        <input
+          id="searchInput"
+          type="text"
+          class="search-input"
+          placeholder="Search name, email, ID, or team..."
+          oninput="renderUsers()"
+        />
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User Details</th>
+              <th>Registration Type</th>
+              <th>Team</th>
+              <th>Balance (£ GBP)</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr>
+              <td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. CREATED TEAMS -->
+    <div class="card">
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">
+        Created Teams (<span id="teamsCount">0</span>)
+      </h2>
+      <div id="teamsContainer" class="teams-grid"></div>
+    </div>
+
+    <!-- 4. ACTIVE MARTHA GATEWAY DEPOSIT SESSIONS (For Admin / Testing) -->
+    <div class="card">
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">
+        Active Martha Gateway Sessions (<span id="depositsCount">0</span>)
+      </h2>
+      <div id="depositsContainer" class="teams-grid"></div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'http://localhost:4000/api';
+    let state = {
+      ukOnlyEnabled: true,
+      currentLocation: null,
+      users: [],
+      teams: [],
+      pendingDeposits: []
+    };
+
+    function showNotice(message, type = 'success') {
+      const el = document.getElementById('noticeBox');
+      el.textContent = message;
+      el.className = 'notice show ' + type;
+      setTimeout(() => {
+        el.className = 'notice';
+      }, 3500);
+    }
+
+    async function loadOverview() {
+      try {
+        const res = await fetch(API_BASE + '/admin/overview');
+        const data = await res.json();
+        if (data.success) {
+          state.ukOnlyEnabled = Boolean(data.ukOnlyEnabled);
+          state.currentLocation = data.currentLocation || null;
+          state.users = Array.isArray(data.users) ? data.users : [];
+          state.teams = Array.isArray(data.teams) ? data.teams : [];
+          state.pendingDeposits = Array.isArray(data.pendingDeposits) ? data.pendingDeposits : [];
+          renderProtection();
+          renderUsers();
+          renderTeams();
+          renderDeposits();
+        }
+      } catch (err) {
+        showNotice('Could not connect to main backend API at http://localhost:4000', 'error');
+      }
+    }
+
+    function renderProtection() {
+      const badge = document.getElementById('protectionBadge');
+      const btn = document.getElementById('toggleBtn');
+      const geo = document.getElementById('detectedGeo');
+
+      if (state.ukOnlyEnabled) {
+        badge.textContent = 'Active (UK Only)';
+        badge.className = 'status-pill pill-on';
+        btn.textContent = 'Turn Protection OFF';
+        btn.className = 'btn btn-red';
+      } else {
+        badge.textContent = 'Off (Global Access)';
+        badge.className = 'status-pill pill-off';
+        btn.textContent = 'Turn Protection ON';
+        btn.className = 'btn btn-green';
+      }
+
+      if (state.currentLocation) {
+        geo.innerHTML = 'Your current IP location: <strong style="color:#CBD5E1;">' +
+          (state.currentLocation.countryName || 'Unknown') +
+          ' (' + (state.currentLocation.countryCode || 'N/A') + ')</strong>';
+      }
+    }
+
+    async function toggleUkProtection() {
+      const next = !state.ukOnlyEnabled;
+      try {
+        const res = await fetch(API_BASE + '/admin/uk-protection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: next })
+        });
+        const data = await res.json();
+        if (data.success) {
+          state.ukOnlyEnabled = Boolean(data.ukOnlyEnabled);
+          renderProtection();
+          showNotice(
+            state.ukOnlyEnabled
+              ? 'UK-Only Location Protection turned ON (Non-UK visitors blocked).'
+              : 'UK-Only Location Protection turned OFF (All locations allowed).'
+          );
+        }
+      } catch (err) {
+        showNotice('Failed to update UK protection setting', 'error');
+      }
+    }
+
+    function renderUsers() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const filtered = state.users.filter((u) => {
+        if (!q) return true;
+        return (
+          String(u.fullName || '').toLowerCase().includes(q) ||
+          String(u.email || '').toLowerCase().includes(q) ||
+          String(u.id || '').toLowerCase().includes(q) ||
+          String(u.teamName || '').toLowerCase().includes(q) ||
+          String(u.teamCode || '').toLowerCase().includes(q)
+        );
+      });
+
+      document.getElementById('usersHeading').textContent = 'Registered Users (' + filtered.length + ')';
+      const tbody = document.getElementById('usersTableBody');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">No matching users found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((u) => {
+        const isTeamJoined = u.registeredVia === 'team' || !u.phone;
+        const regHtml = isTeamJoined
+          ? '<span class="tag tag-team">Joined via Team Code</span>'
+          : '<span class="tag tag-phone">Phone Registered</span><div style="color:#94A3B8;font-size:11px;margin-top:3px;">' + (u.phone || '') + '</div>';
+
+        const teamHtml = (u.teamName || u.teamCode)
+          ? '<div style="font-weight:700;color:#F8F9FA;">' + (u.teamName || 'Team') + '</div><div style="color:#FFC107;font-size:11px;font-weight:700;">' + (u.teamCode || '') + '</div>'
+          : '<span style="color:#64748B;font-size:11px;">No Team</span>';
+
+        const bal = Number(u.balance || 0).toFixed(2);
+
+        return '<tr>' +
+          '<td>' +
+            '<div style="font-weight:700;color:#F8F9FA;">' + u.fullName + '</div>' +
+            '<div style="color:#94A3B8;font-size:11px;">' + u.email + ' • ' + u.id + '</div>' +
+          '</td>' +
+          '<td>' + regHtml + '</td>' +
+          '<td>' + teamHtml + '</td>' +
+          '<td>' +
+            '<div class="balance-box">' +
+              '<span style="color:#94A3B8;font-weight:700;">£</span>' +
+              '<input id="bal_' + u.id + '" type="number" step="0.01" min="0" class="balance-input" value="' + bal + '" />' +
+              '<button class="btn btn-green" style="padding:5px 10px;font-size:11px;" onclick="saveBalance(\'' + u.id + '\')">Save</button>' +
+            '</div>' +
+          '</td>' +
+          '<td style="text-align:right;">' +
+            '<button class="btn btn-red" style="padding:5px 10px;font-size:11px;" onclick="deleteUser(\'' + u.id + '\', \'' + String(u.fullName).replace(/'/g, "\\'") + '\')">Delete</button>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    async function saveBalance(userId) {
+      const input = document.getElementById('bal_' + userId);
+      if (!input) return;
+      const val = Number(input.value);
+      if (isNaN(val) || val < 0) {
+        showNotice('Enter a valid non-negative GBP amount', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(API_BASE + '/admin/users/' + encodeURIComponent(userId) + '/balance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ balance: val })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showNotice('Updated balance for ' + data.user.fullName + ' to £' + Number(data.user.balance).toFixed(2));
+          loadOverview();
+        } else {
+          showNotice(data.error || 'Failed to update balance', 'error');
+        }
+      } catch (err) {
+        showNotice('Error saving user balance', 'error');
+      }
+    }
+
+    async function deleteUser(userId, fullName) {
+      if (!confirm('Delete user "' + fullName + '" (' + userId + ')?')) return;
+      try {
+        const res = await fetch(API_BASE + '/admin/users/' + encodeURIComponent(userId), {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showNotice('Deleted user ' + fullName);
+          loadOverview();
+        } else {
+          showNotice(data.error || 'Failed to delete user', 'error');
+        }
+      } catch (err) {
+        showNotice('Error deleting user', 'error');
+      }
+    }
+
+    function renderTeams() {
+      document.getElementById('teamsCount').textContent = state.teams.length;
+      const container = document.getElementById('teamsContainer');
+      if (state.teams.length === 0) {
+        container.innerHTML = '<div style="color:#94A3B8;font-size:12px;">No teams created yet.</div>';
+        return;
+      }
+      container.innerHTML = state.teams.map((t) => (
+        '<div class="team-item">' +
+          '<div>' +
+            '<div style="font-weight:700;color:#F8F9FA;">' + t.name + '</div>' +
+            '<div style="color:#94A3B8;font-size:11px;">Owner: ' + t.ownerName + ' • ' + t.memberCount + ' member(s)</div>' +
+          '</div>' +
+          '<span class="code-badge">' + t.code + '</span>' +
+        '</div>'
+      )).join('');
+    }
+
+    function renderDeposits() {
+      document.getElementById('depositsCount').textContent = state.pendingDeposits.length;
+      const container = document.getElementById('depositsContainer');
+      if (state.pendingDeposits.length === 0) {
+        container.innerHTML = '<div style="color:#94A3B8;font-size:12px;">No active deposit sessions yet.</div>';
+        return;
+      }
+      container.innerHTML = state.pendingDeposits.map((d) => (
+        '<div class="team-item">' +
+          '<div>' +
+            '<div style="font-weight:700;color:#F8F9FA;">£' + Number(d.amount || 0).toFixed(2) + (d.amountGhs ? ' (GHS ' + Number(d.amountGhs).toFixed(2) + ')' : '') + ' • ' + (d.methodLabel || d.channel) + '</div>' +
+            '<div style="color:#94A3B8;font-size:11px;">' + d.reference + ' • ' + d.status + '</div>' +
+          '</div>' +
+          '<a class="btn btn-gold" style="padding:5px 10px;font-size:11px;" href="' + d.marthaCheckoutUrl + '" target="_blank" rel="noopener">Open Gateway ↗</a>' +
+        '</div>'
+      )).join('');
+    }
+
+    loadOverview();
+  </script>
+</body>
+</html>

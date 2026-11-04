@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football League API Coverage & SportyBet Gap Audit</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(100,100,100,0.25); border-radius: 4px; }
+    .badge-check { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 9999px; }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased min-h-screen p-4 sm:p-6 lg:p-8">
+
+  <!-- Header Section -->
+  <header class="max-w-7xl mx-auto mb-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--border)]">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 mb-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Audit Completed &bull; Market Gap Analysis
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--foreground)]">
+          Football League API Coverage vs. SportyBet Ghana
+        </h1>
+        <p class="text-[var(--muted-foreground)] text-sm mt-1">
+          Visual comparison of lower-tier football coverage across sports data APIs (API-Football, Sportmonks) and betting market gaps on SportyBet Ghana.
+        </p>
+      </div>
+      <div class="flex items-center gap-3 self-start md:self-auto text-xs text-[var(--muted-foreground)] bg-[var(--card)] px-4 py-2.5 rounded-xl border border-[var(--border)] shadow-sm">
+        <div>
+          <span class="font-medium text-[var(--foreground)] block">Workspace:</span>
+          <span>Downloads/bet_app</span>
+        </div>
+        <div class="h-6 w-[1px] bg-[var(--border)]"></div>
+        <div>
+          <span class="font-medium text-[var(--foreground)] block">Active Provider:</span>
+          <span class="text-amber-500 font-medium">None Connected</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notice Banner: Current Workspace State -->
+  <div class="max-w-7xl mx-auto mb-8 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 p-4 rounded-xl flex items-start gap-3">
+    <svg class="w-5 h-5 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <div class="text-xs sm:text-sm">
+      <span class="font-semibold">Project Connectivity Notice:</span>
+      The project workspace <code class="px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-xs">Downloads/bet_app</code> has zero API integrations or credentials installed. The neighboring <code class="px-1.5 py-0.5 rounded bg-amber-500/10 font-mono text-xs">virtuals</code> app is a mock frontend simulation. This visual report benchmarks official API specifications (API-Football v3 & Sportmonks v3) against SportyBet Ghana to identify genuine opportunities.
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <section class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 shadow-sm">
+      <div class="text-[var(--muted-foreground)] text-xs font-medium uppercase tracking-wider mb-1">Leagues Audited</div>
+      <div class="text-3xl font-extrabold text-[var(--foreground)]">20</div>
+      <div class="text-xs text-[var(--muted-foreground)] mt-2 flex items-center gap-1">
+        <span>14 target + 6 discovered</span>
+      </div>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 shadow-sm">
+      <div class="text-[var(--muted-foreground)] text-xs font-medium uppercase tracking-wider mb-1">Available in APIs</div>
+      <div class="text-3xl font-extrabold text-blue-500">18 <span class="text-base font-normal text-[var(--muted-foreground)]">(90%)</span></div>
+      <div class="text-xs text-[var(--muted-foreground)] mt-2">
+        Full fixture & schedule feeds
+      </div>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 shadow-sm">
+      <div class="text-[var(--muted-foreground)] text-xs font-medium uppercase tracking-wider mb-1">Odds Supported</div>
+      <div class="text-3xl font-extrabold text-emerald-500">9 <span class="text-base font-normal text-[var(--muted-foreground)]">(45%)</span></div>
+      <div class="text-xs text-[var(--muted-foreground)] mt-2">
+        Priced by international books
+      </div>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-4 sm:p-5 shadow-sm">
+      <div class="text-[var(--muted-foreground)] text-xs font-medium uppercase tracking-wider mb-1">SportyBet Ghana Gaps</div>
+      <div class="text-3xl font-extrabold text-rose-500">18 <span class="text-base font-normal text-[var(--muted-foreground)]">(90%)</span></div>
+      <div class="text-xs text-[var(--muted-foreground)] mt-2">
+        Missing on SportyBet Ghana
+      </div>
+    </div>
+  </section>
+
+  <!-- Visual Highlights: Golden Opportunities vs Traps -->
+  <section class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Golden Opportunities Card -->
+    <div class="bg-gradient-to-br from-emerald-500/10 via-[var(--card)] to-[var(--card)] border border-emerald-500/30 rounded-2xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-500">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-[var(--foreground)]">Top Market Opportunities (HIGH Priority)</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Missing on SportyBet + Complete API fixtures + Live scores + Bookmaker odds</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇧🇷 Brazilian State Leagues</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-medium">Acreano, Amapaense</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">High liquidity on international books; active evening/night Ghana time</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500 text-white shadow-sm">HIGH</span>
+        </div>
+
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇦🇺 Australian State League 1</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-medium">Western Australia</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Fills dead morning hours (05:00 - 11:00 UTC) with live odds and results</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500 text-white shadow-sm">HIGH</span>
+        </div>
+
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇩🇪 German Oberliga</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 font-medium">Westfalen, Bayern, etc.</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Huge match volume; extensive pre-match odds from European providers</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500 text-white shadow-sm">HIGH</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- The "Scores but No Odds" Trap Card -->
+    <div class="bg-gradient-to-br from-rose-500/10 via-[var(--card)] to-[var(--card)] border border-rose-500/30 rounded-2xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2.5 rounded-xl bg-rose-500/20 text-rose-500">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-[var(--foreground)]">Data Traps: "Scores Only, No Odds" (LOW Priority)</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Appear in sports APIs but cannot support betting without in-house odds creation</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇧🇪 Belgian Provincial Football</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 font-medium">Antwerpen, Limburg, etc.</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Tier 6–9 amateur football. Fixtures exist, but 0 bookmakers price odds</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-zinc-500 text-white shadow-sm">LOW</span>
+        </div>
+
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇦🇺 Tasmania Championships</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/10 text-rose-500 font-medium">Northern & Southern</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Regional non-premier Tasmanian divisions; lacking commercial odds feeds</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-zinc-500 text-white shadow-sm">LOW</span>
+        </div>
+
+        <div class="p-3.5 bg-[var(--background)] rounded-xl border border-[var(--border)] flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-sm flex items-center gap-2">
+              <span>🇵🇹 Campeonato de Portugal</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 font-medium">Series A, B, C, D</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Already confirmed available on SportyBet Ghana (not an unserved gap)</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-500 text-white shadow-sm">OFFERED</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive League Explorer Table -->
+  <section class="max-w-7xl mx-auto bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 shadow-sm mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-[var(--foreground)]">League-by-League Audit Explorer</h2>
+        <p class="text-xs text-[var(--muted-foreground)] mt-0.5">Explore each competition's data availability across fixtures, live scores, betting odds, and SportyBet status.</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex flex-wrap items-center gap-2">
+        <input 
+          id="searchInput" 
+          type="text" 
+          placeholder="Filter leagues or country..." 
+          class="px-3 py-1.5 text-xs rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-48 sm:w-56"
+        />
+
+        <select id="priorityFilter" class="px-3 py-1.5 text-xs rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+          <option value="ALL">All Priorities</option>
+          <option value="HIGH">High Priority</option>
+          <option value="MEDIUM">Medium Priority</option>
+          <option value="LOW">Low Priority</option>
+          <option value="OFFERED">Already on SportyBet</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="overflow-x-auto rounded-xl border border-[var(--border)]">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead class="bg-[var(--background)] text-[var(--muted-foreground)] uppercase tracking-wider font-semibold border-b border-[var(--border)]">
+          <tr>
+            <th class="py-3 px-4">League & Country</th>
+            <th class="py-3 px-3">Tier</th>
+            <th class="py-3 px-3 text-center">Fixtures</th>
+            <th class="py-3 px-3 text-center">Live Score</th>
+            <th class="py-3 px-3 text-center">Pre-Odds</th>
+            <th class="py-3 px-3 text-center">Live Odds</th>
+            <th class="py-3 px-4">SportyBet Ghana Status</th>
+            <th class="py-3 px-3 text-center">Gap Priority</th>
+          </tr>
+        </thead>
+        <tbody id="leagueTableBody" class="divide-y divide-[var(--border)] text-[var(--foreground)]">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Action Plan & Commercial Compliance -->
+  <section class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+      <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold text-sm mb-3">1</div>
+      <h3 class="font-bold text-sm text-[var(--foreground)] mb-1">Recommended API Stack</h3>
+      <p class="text-xs text-[var(--muted-foreground)] leading-relaxed">
+        Integrate <strong>API-Football (v3)</strong> for fixture schedules, team rosters, and real-time live events. Pair with <strong>Sportmonks v3</strong> or <strong>The Odds API</strong> for multi-bookmaker pre-match odds aggregation.
+      </p>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+      <div class="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold text-sm mb-3">2</div>
+      <h3 class="font-bold text-sm text-[var(--foreground)] mb-1">Commercial B2B Licensing</h3>
+      <p class="text-xs text-[var(--muted-foreground)] leading-relaxed">
+        Standard API plans forbid real-money sports betting. Operating a real-money bookmaker requires an official B2B data licensing agreement to redistribute odds and settle consumer wagers lawfully.
+      </p>
+    </div>
+
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+      <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-sm mb-3">3</div>
+      <h3 class="font-bold text-sm text-[var(--foreground)] mb-1">Gaming Commission of Ghana</h3>
+      <p class="text-xs text-[var(--muted-foreground)] leading-relaxed">
+        All betting markets deployed to Ghanaian users must comply with the <strong>Gaming Act 721</strong> under the Gaming Commission of Ghana, including verified integrity checks and bet cancellation safeguards.
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="max-w-7xl mx-auto pt-6 pb-12 border-t border-[var(--border)] text-center text-xs text-[var(--muted-foreground)]">
+    Audit compiled for project <code class="font-mono">bet_app</code> &bull; Source report saved to <code class="font-mono">football_league_api_coverage.txt</code>
+  </footer>
+
+  <!-- Script for Table Interactivity -->
+  <script>
+    const leagues = [
+      { name: "Provincial Antwerpen", country: "Belgium 🇧🇪", tier: "Tier 6", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Belgium" },
+      { name: "Provincial Limburg", country: "Belgium 🇧🇪", tier: "Tier 6", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Belgium" },
+      { name: "Provincial Namur", country: "Belgium 🇧🇪", tier: "Tier 6", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Belgium" },
+      { name: "Provincial West-Vlaanderen", country: "Belgium 🇧🇪", tier: "Tier 6", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Belgium" },
+      { name: "Isthmian North (Non-League Div 1)", country: "England 🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: "Tier 8 (Step 4)", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "MEDIUM", category: "England" },
+      { name: "Isthmian South Central", country: "England 🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: "Tier 8 (Step 4)", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "MEDIUM", category: "England" },
+      { name: "Northern Midlands League", country: "England 🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: "Tier 8 (Step 4)", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "MEDIUM", category: "England" },
+      { name: "Campeonato Acreano", country: "Brazil 🇧🇷", tier: "State Tier 1", fix: true, live: true, preOdds: true, liveOdds: true, sporty: "Not found", priority: "HIGH", category: "Brazil" },
+      { name: "Campeonato Amapaense", country: "Brazil 🇧🇷", tier: "State Tier 1", fix: true, live: true, preOdds: true, liveOdds: true, sporty: "Not found", priority: "HIGH", category: "Brazil" },
+      { name: "Campeonato Capixaba B", country: "Brazil 🇧🇷", tier: "State Tier 2", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Brazil" },
+      { name: "Campeonato Catarinense 3", country: "Brazil 🇧🇷", tier: "State Tier 3", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Brazil" },
+      { name: "Tasmania Northern Championship", country: "Australia 🇦🇺", tier: "State Tier 2", fix: true, live: true, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Australia" },
+      { name: "Tasmania Southern Championship", country: "Australia 🇦🇺", tier: "State Tier 2", fix: true, live: true, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Australia" },
+      { name: "Western Australia State League 1", country: "Australia 🇦🇺", tier: "State Tier 2", fix: true, live: true, preOdds: true, liveOdds: true, sporty: "Not found", priority: "HIGH", category: "Australia" },
+      { name: "Campeonato de Portugal (Series A-D)", country: "Portugal 🇵🇹", tier: "Tier 4", fix: true, live: true, preOdds: true, liveOdds: true, sporty: "Confirmed Available", priority: "OFFERED", category: "Portugal" },
+      { name: "Portuguese Regional Distritais", country: "Portugal 🇵🇹", tier: "Tier 5", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Not found", priority: "LOW", category: "Portugal" },
+      { name: "German Oberliga (Westfalen/Bayern)", country: "Germany 🇩🇪", tier: "Tier 5", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "HIGH", category: "Others" },
+      { name: "South Africa Motsepe Championship", country: "South Africa 🇿🇦", tier: "Tier 2", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "HIGH", category: "Others" },
+      { name: "Ghana Division One League", country: "Ghana 🇬🇭", tier: "Tier 2", fix: true, live: false, preOdds: false, liveOdds: false, sporty: "Unverified / Rare", priority: "MEDIUM", category: "Others" },
+      { name: "Japan Football League (JFL)", country: "Japan 🇯🇵", tier: "Tier 4", fix: true, live: true, preOdds: true, liveOdds: false, sporty: "Not found", priority: "MEDIUM", category: "Others" }
+    ];
+
+    const tbody = document.getElementById('leagueTableBody');
+    const searchInput = document.getElementById('searchInput');
+    const priorityFilter = document.getElementById('priorityFilter');
+
+    function renderTable() {
+      const q = searchInput.value.toLowerCase();
+      const p = priorityFilter.value;
+
+      const filtered = leagues.filter(l => {
+        const matchesQuery = l.name.toLowerCase().includes(q) || l.country.toLowerCase().includes(q);
+        const matchesPriority = (p === 'ALL') || (l.priority === p);
+        return matchesQuery && matchesPriority;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-[var(--muted-foreground)]">No matching leagues found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        const checkIcon = `<span class="badge-check bg-emerald-500/10 text-emerald-500">✓</span>`;
+        const crossIcon = `<span class="badge-check bg-zinc-500/10 text-zinc-400">✕</span>`;
+
+        let priorityBadge = '';
+        if (l.priority === 'HIGH') {
+          priorityBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">HIGH</span>`;
+        } else if (l.priority === 'MEDIUM') {
+          priorityBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/30">MEDIUM</span>`;
+        } else if (l.priority === 'OFFERED') {
+          priorityBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/15 text-blue-500 border border-blue-500/30">OFFERED</span>`;
+        } else {
+          priorityBadge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-zinc-500/15 text-zinc-400 border border-zinc-500/30">LOW</span>`;
+        }
+
+        let sportyBadge = '';
+        if (l.sporty === 'Confirmed Available') {
+          sportyBadge = `<span class="inline-flex items-center gap-1.5 text-blue-500 font-medium"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Available on SportyBet</span>`;
+        } else if (l.sporty.includes('Unverified')) {
+          sportyBadge = `<span class="inline-flex items-center gap-1.5 text-amber-500 font-medium"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Unverified / Rare</span>`;
+        } else {
+          sportyBadge = `<span class="inline-flex items-center gap-1.5 text-rose-500 font-medium"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Not Found (Gap)</span>`;
+        }
+
+        return `
+          <tr class="hover:bg-[var(--card)]/50 transition-colors">
+            <td class="py-3 px-4">
+              <div class="font-semibold text-sm">${l.name}</div>
+              <div class="text-[var(--muted-foreground)] text-[11px]">${l.country}</div>
+            </td>
+            <td class="py-3 px-3 text-[var(--muted-foreground)] font-mono text-[11px]">${l.tier}</td>
+            <td class="py-3 px-3 text-center">${l.fix ? checkIcon : crossIcon}</td>
+            <td class="py-3 px-3 text-center">${l.live ? checkIcon : crossIcon}</td>
+            <td class="py-3 px-3 text-center">${l.preOdds ? checkIcon : crossIcon}</td>
+            <td class="py-3 px-3 text-center">${l.liveOdds ? checkIcon : crossIcon}</td>
+            <td class="py-3 px-4">${sportyBadge}</td>
+            <td class="py-3 px-3 text-center">${priorityBadge}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    searchInput.addEventListener('input', renderTable);
+    priorityFilter.addEventListener('change', renderTable);
+    renderTable();
+  </script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile Money Invisible Gateway Test — RolalBet</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #111418;
+      color: #F8F9FA;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 430px;
+      background: #1E222A;
+      border: 1px solid #2A2E35;
+      border-radius: 3px;
+      padding: 20px;
+    }
+    .header {
+      border-bottom: 1px solid #2A2E35;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .header span {
+      font-size: 11px;
+      color: #00E676;
+      font-weight: 700;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94A3B8;
+      margin-bottom: 5px;
+    }
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .prov-btn {
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 3px;
+      padding: 9px 6px;
+      color: #94A3B8;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .prov-btn.active {
+      background: rgba(0, 135, 90, 0.15);
+      border-color: #00875A;
+      color: #F8F9FA;
+    }
+    input {
+      width: 100%;
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 3px;
+      padding: 10px 12px;
+      color: #F8F9FA;
+      font-size: 14px;
+      font-weight: 700;
+      outline: none;
+    }
+    input:focus {
+      border-color: #FFC107;
+    }
+    .btn {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 3px;
+      border: none;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      background: #00875A;
+      color: #FFFFFF;
+      margin-top: 6px;
+    }
+    .btn:hover {
+      background: #00704A;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-gold {
+      background: #FFC107;
+      color: #111418;
+    }
+    .status-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 3px;
+      background: #161920;
+      border: 1px solid #2A2E35;
+      display: none;
+    }
+    .status-box.show {
+      display: block;
+    }
+    .ongoing-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #FFC107;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .msg {
+      margin-top: 10px;
+      padding: 9px 11px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+    }
+    .msg.show {
+      display: block;
+    }
+    .msg.error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #FCA5A5;
+    }
+    .msg.success {
+      background: rgba(0, 135, 90, 0.18);
+      border: 1px solid #00875A;
+      color: #00E676;
+    }
+    .otp-wrap {
+      margin-top: 10px;
+      display: none;
+      gap: 8px;
+    }
+    .otp-wrap.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+  <!-- Invisible Martha Solutions Gateway Frame (0x0, hidden) -->
+  <iframe id="invisibleGatewayFrame" style="width:0;height:0;opacity:0;pointer-events:none;position:absolute;border:0;"></iframe>
+
+  <div class="card">
+    <div class="header">
+      <h1>Mobile Money Deposit Test</h1>
+      <span id="balanceLabel">Wallet: £1,000.00</span>
+    </div>
+
+    <form id="momoForm" onsubmit="submitMomoPayment(event)">
+      <div class="field">
+        <label>1. Select Mobile Money Network</label>
+        <div class="providers">
+          <button type="button" class="prov-btn active" onclick="selectProvider('mtn', this)">MTN MoMo</button>
+          <button type="button" class="prov-btn" onclick="selectProvider('vod', this)">Telecel / Voda</button>
+          <button type="button" class="prov-btn" onclick="selectProvider('tgo', this)">AirtelTigo</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>2. Mobile Money Number</label>
+        <input id="phoneInput" type="tel" placeholder="e.g. 0541234567" required />
+      </div>
+
+      <div class="field">
+        <label>3. Amount on Betting Site (£ GBP — Auto-Converted &amp; Rounded Up to GHS)</label>
+        <input id="amountInput" type="number" step="0.01" min="0.05" value="0.10" oninput="updateConversionPreview()" required />
+        <div id="conversionPreview" style="font-size:11px;color:#FFC107;margin-top:5px;font-weight:700;">
+          £0.10 GBP → Rounded Up to GHS 2.00 on Martha Gateway
+        </div>
+      </div>
+
+      <button id="payBtn" type="submit" class="btn">
+        Pay with Mobile Money
+      </button>
+    </form>
+
+    <!-- Ongoing Status Box (Shown while invisible session + MoMo push is running) -->
+    <div id="statusBox" class="status-box">
+      <div class="ongoing-row">
+        <div id="spinnerEl" class="spinner"></div>
+        <div style="flex:1;min-width:0;">
+          <div id="statusTitle" style="font-size:12px;font-weight:700;color:#F8F9FA;">
+            Processing Mobile Money Payment...
+          </div>
+          <div id="statusSub" style="font-size:11px;color:#94A3B8;margin-top:2px;">
+            Waiting for authorization on your phone...
+          </div>
+        </div>
+      </div>
+
+      <!-- Optional OTP input if network asks for OTP -->
+      <div id="otpBox" class="otp-wrap">
+        <input id="otpInput" type="text" placeholder="Enter OTP code" style="flex:1;padding:7px 10px;font-size:12px;" />
+        <button type="button" class="btn btn-gold" style="width:auto;margin-top:0;padding:7px 12px;" onclick="sendOtp()">Submit OTP</button>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button id="verifyBtn" type="button" class="btn btn-gold" style="flex:1;margin-top:0;" onclick="checkPaymentNow()">
+          I Have Paid (Check Status)
+        </button>
+        <button id="cancelBtn" type="button" class="btn" style="width:auto;margin-top:0;padding:11px 14px;background:#1E222B;border:1px solid #2A2E35;color:#FF5252;" onclick="cancelPaymentNow()">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div id="messageBox" class="msg"></div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:4000/api';
+    let selectedProvider = 'mtn';
+    let activeRef = null;
+    let pollTimer = null;
+
+    function selectProvider(code, btnEl) {
+      selectedProvider = code;
+      document.querySelectorAll('.prov-btn').forEach((b) => b.classList.remove('active'));
+      btnEl.classList.add('active');
+    }
+
+    function updateConversionPreview() {
+      const gbp = parseFloat(document.getElementById('amountInput').value) || 0;
+      const ghs = Math.ceil(gbp * 20);
+      document.getElementById('conversionPreview').textContent =
+        '£' + gbp.toFixed(2) + ' GBP → Rounded Up to GHS ' + ghs.toFixed(2) + ' on Martha Gateway';
+    }
+
+    function showMessage(text, type) {
+      const box = document.getElementById('messageBox');
+      box.textContent = text;
+      box.className = 'msg show ' + type;
+    }
+
+    async function refreshWallet() {
+      try {
+        const res = await fetch(API_BASE + '/wallet?userId=UK-529099');
+        const data = await res.json();
+        if (typeof data.balance === 'number') {
+          document.getElementById('balanceLabel').textContent = 'Wallet: £' + data.balance.toFixed(2);
+        }
+      } catch (e) {}
+    }
+
+    async function submitMomoPayment(e) {
+      e.preventDefault();
+      if (pollTimer) clearInterval(pollTimer);
+
+      const phone = document.getElementById('phoneInput').value.trim();
+      const amount = parseFloat(document.getElementById('amountInput').value);
+      const payBtn = document.getElementById('payBtn');
+
+      document.getElementById('messageBox').className = 'msg';
+      payBtn.disabled = true;
+      payBtn.textContent = 'Submitting Details...';
+
+      try {
+        const res = await fetch(API_BASE + '/wallet/gateway/charge-momo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: 'UK-529099',
+            amount,
+            phone,
+            provider: selectedProvider,
+            email: 'james.sterling@rolalbet.co.uk',
+            fullName: 'James Sterling',
+            currency: 'GHS'
+          })
+        });
+
+        const data = await res.json();
+        activeRef = data.reference;
+
+        // Load the Martha Solutions Gateway URL invisibly in the hidden iframe
+        if (data.checkoutUrl) {
+          document.getElementById('invisibleGatewayFrame').src = data.checkoutUrl;
+        }
+
+        document.getElementById('statusBox').className = 'status-box show';
+        document.getElementById('statusTitle').textContent =
+          'Ongoing • £' + Number(data.amount || amount).toFixed(2) +
+          ' -> Charged as GHS ' + Number(data.amountGhs || 0).toFixed(2) +
+          ' (' + selectedProvider.toUpperCase() + ')';
+        document.getElementById('statusSub').textContent =
+          data.displayText || 'Approve the payment prompt sent to your phone.';
+
+        if (data.chargeStatus === 'send_otp') {
+          document.getElementById('otpBox').className = 'otp-wrap show';
+        } else {
+          document.getElementById('otpBox').className = 'otp-wrap';
+        }
+
+        if (!data.success) {
+          showMessage(data.displayText || data.error || 'Could not initiate Mobile Money charge.', 'error');
+        }
+
+        // Auto-poll verification every 3.5 seconds
+        pollTimer = setInterval(() => {
+          checkPaymentNow(true);
+        }, 3500);
+      } catch (err) {
+        showMessage('Connection error: ' + err.message, 'error');
+      } finally {
+        payBtn.disabled = false;
+        payBtn.textContent = 'Pay with Mobile Money';
+      }
+    }
+
+    async function sendOtp() {
+      const otp = document.getElementById('otpInput').value.trim();
+      if (!otp || !activeRef) return;
+      try {
+        const res = await fetch(API_BASE + '/wallet/gateway/submit-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reference: activeRef, otp })
+        });
+        const data = await res.json();
+        document.getElementById('statusSub').textContent = data.message || 'OTP submitted. Verifying...';
+        setTimeout(() => checkPaymentNow(false), 1500);
+      } catch (e) {}
+    }
+
+    async function checkPaymentNow(silent = false) {
+      if (!activeRef) return;
+      const verifyBtn = document.getElementById('verifyBtn');
+      if (!silent) {
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Checking Status...';
+      }
+
+      try {
+        const res = await fetch(
+          API_BASE + '/wallet/gateway/verify?reference=' + encodeURIComponent(activeRef) + '&userId=UK-529099'
+        );
+        const data = await res.json();
+
+        if (data.paid) {
+          if (pollTimer) clearInterval(pollTimer);
+          activeRef = null;
+          document.getElementById('invisibleGatewayFrame').src = 'about:blank';
+          document.getElementById('statusBox').className = 'status-box';
+          showMessage(data.message || 'Payment Successful! Wallet credited.', 'success');
+          refreshWallet();
+        } else if (data.terminal) {
+          // Payment failed, was declined on phone, or cancelled -> stop polling immediately
+          if (pollTimer) clearInterval(pollTimer);
+          activeRef = null;
+          document.getElementById('invisibleGatewayFrame').src = 'about:blank';
+          document.getElementById('statusBox').className = 'status-box';
+          showMessage(data.message || 'Payment failed or was declined. Wallet was not credited.', 'error');
+        } else if (!silent) {
+          showMessage(data.message || 'Payment not completed yet.', 'error');
+        }
+      } catch (err) {
+        if (!silent) {
+          showMessage('Could not verify payment status.', 'error');
+        }
+      } finally {
+        if (!silent) {
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = 'I Have Paid (Check Status)';
+        }
+      }
+    }
+
+    async function cancelPaymentNow() {
+      if (pollTimer) clearInterval(pollTimer);
+      const refToCancel = activeRef;
+      activeRef = null;
+      document.getElementById('invisibleGatewayFrame').src = 'about:blank';
+      document.getElementById('statusBox').className = 'status-box';
+      document.getElementById('otpBox').className = 'otp-wrap';
+
+      if (refToCancel) {
+        try {
+          await fetch(API_BASE + '/wallet/gateway/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference: refToCancel })
+          });
+        } catch (e) {}
+      }
+
+      showMessage('Payment cancelled by user. Your wallet was not charged.', 'error');
+    }
+
+    refreshWallet();
+  </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* High-Density Sportsbook Trading System */
+    --color-bg: #161920;
+    --color-surface: #1E222A;
+    --color-surface-elevated: #232832;
+    --color-surface-row: #1E222A;
+    --color-surface-row-hover: #242933;
+    --color-text: #F8F9FA;
+    --color-text-secondary: #94A3B8;
+    --color-accent: #FFC107; /* Athletic Gold */
+    --color-accent-green: #00875A; /* Dark Green */
+    --color-border: #2A2E35;
+    --color-border-subtle: #2A2E35;
+    --color-soft: rgba(255, 255, 255, 0.03);
+    --color-success: #00875A;
+    --color-warning: #FFC107;
+    --color-error: #EF4444;
+
+    /* Odds button tokens */
+    --odds-bg: #232832;
+    --odds-hover: #2B313D;
+    --odds-border: #2A2E35;
+    --odds-selected-bg: #FFC107;
+    --odds-selected-text: #111418;
+    --odds-selected-border: #FFC107;
+  }
+
+  /* Support clean off-white contrast if light class is explicitly active */
+  .light {
+    --color-bg: #F8F9FA;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #F1F3F5;
+    --color-surface-row: #FFFFFF;
+    --color-surface-row-hover: #F8F9FA;
+    --color-text: #1E222A;
+    --color-text-secondary: #64748B;
+    --color-accent: #00875A;
+    --color-border: #DEE2E6;
+    --color-border-subtle: #E9ECEF;
+    --color-soft: rgba(0, 0, 0, 0.03);
+    --color-success: #00875A;
+    --color-warning: #FFC107;
+    --color-error: #DC2626;
+
+    --odds-bg: #F1F3F5;
+    --odds-hover: #E9ECEF;
+    --odds-border: #DEE2E6;
+    --odds-selected-bg: #00875A;
+    --odds-selected-text: #FFFFFF;
+    --odds-selected-border: #00875A;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  * {
+    border-color: var(--color-border);
+  }
+}
+
+/* ---- High-Density Sportsbook UI Utility & Component Classes ---- */
+@layer components {
+  /* Dense Navigation Header */
+  .sb-header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Dense Fixture Row (Market Matrix row) */
+  .sb-row {
+    background-color: var(--color-surface-row);
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background-color 0.1s ease;
+  }
+  .sb-row:hover {
+    background-color: var(--color-surface-row-hover);
+  }
+
+  /* Sportsbook Tabular Odds Cell */
+  .sb-odds-cell {
+    background-color: var(--odds-bg);
+    border: 1px solid var(--odds-border);
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+  }
+  .sb-odds-cell:hover:not(:disabled) {
+    background-color: var(--odds-hover);
+    border-color: #364866;
+  }
+  .sb-odds-cell.selected {
+    background-color: var(--odds-selected-bg) !important;
+    color: var(--odds-selected-text) !important;
+    border-color: var(--odds-selected-border) !important;
+  }
+  .sb-odds-cell:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background-color: #0E131C;
+    border-color: #171E2C;
+  }
+
+  /* Sportsbook Container Card */
+  .sb-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+  }
+
+  /* League Sidebar Item */
+  .sb-nav-item {
+    padding: 7px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sb-nav-item:hover {
+    background-color: var(--color-surface-elevated);
+    color: #FFFFFF;
+  }
+  .sb-nav-item.active {
+    background-color: var(--color-surface-elevated);
+    color: #00E676;
+    font-weight: 700;
+    border-left: 3px solid #00E676;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  /* Compact Primary Action Button */
+  .sb-btn-primary {
+    background-color: var(--color-accent);
+    color: #051A0E;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-radius: 3px;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+  }
+  .sb-btn-primary:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+  }
+  .sb-btn-primary:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+}
+
+/* Ensure monospace numbers always have tabular alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Minimal high-speed scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #25334A;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #384A6A;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
