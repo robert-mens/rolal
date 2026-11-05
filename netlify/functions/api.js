@@ -1,5 +1,5 @@
-// Netlify Function entry: wraps the Express app (payments + admin API are disabled when hosted).
-process.env.VERCEL = process.env.VERCEL || 'netlify-hosted'; // reuse the "hosted" safety switches
+// Netlify Function entry: wraps the Express app.
+// NETLIFY env var is set automatically by Netlify CI; PAYSTACK_SECRET_KEY enables live payments.
 const serverless = require('serverless-http');
 const { app } = require('../../server/server');
 

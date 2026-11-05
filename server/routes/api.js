@@ -6,20 +6,20 @@
 const express = require('express');
 const router = express.Router();
 
-// Public/hosted deployments (e.g. Vercel previews) run with live payments and the admin API disabled.
-// Locally, payments stay available; set PAYMENTS_ENABLED=true explicitly to allow them elsewhere.
-const IS_HOSTED = Boolean(process.env.VERCEL);
-const PAYMENTS_ENABLED = !IS_HOSTED || process.env.PAYMENTS_ENABLED === 'true';
+// Payments are enabled whenever a Paystack secret key is configured (works locally and on Vercel/Netlify).
+// Admin API is disabled on hosted deployments unless ADMIN_ENABLED=true is set.
+const IS_HOSTED = Boolean(process.env.VERCEL || process.env.NETLIFY);
+const PAYMENTS_ENABLED = Boolean(process.env.PAYSTACK_SECRET_KEY) || process.env.PAYMENTS_ENABLED === 'true';
 router.use(['/wallet/gateway', '/admin'], (req, res, next) => {
   if (req.path.startsWith('/') && req.baseUrl !== undefined) {
     const isAdmin = req.originalUrl.includes('/admin');
-    if (isAdmin && IS_HOSTED) {
+    if (isAdmin && IS_HOSTED && process.env.ADMIN_ENABLED !== 'true') {
       return res.status(403).json({ success: false, error: 'Admin API is disabled on this deployment.' });
     }
     if (!isAdmin && !PAYMENTS_ENABLED) {
       return res.status(403).json({
         success: false,
-        error: 'Live payments are disabled on this preview deployment.'
+        error: 'Payment processing is not configured. Please contact support.'
       });
     }
   }
