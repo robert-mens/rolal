@@ -29,6 +29,7 @@ const oddsEngine = require('../services/oddsEngine');
 const walletLedger = require('../services/walletLedger');
 const db = require('../services/db');
 const emailService = require('../services/emailService');
+const smsService = require('../services/smsService');
 
 // Active Server-Sent Events (SSE) connections
 const sseClients = new Set();
@@ -384,6 +385,52 @@ router.post('/auth/send-code', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/send-sms-code
+ * Sends a 6-digit SMS verification code to a UK mobile number via Vonage
+ */
+router.post('/auth/send-sms-code', async (req, res) => {
+  try {
+    const { phone, fullName } = req.body;
+    const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+
+    if (!cleanPhone || cleanPhone.length < 10) {
+      return res.status(400).json({ success: false, error: 'Please enter a valid UK mobile number.' });
+    }
+
+    // Normalise to E.164 (+44...)
+    let e164 = cleanPhone;
+    if (e164.startsWith('07')) {
+      e164 = '+44' + e164.slice(1);
+    } else if (e164.startsWith('44') && !e164.startsWith('+')) {
+      e164 = '+' + e164;
+    } else if (!e164.startsWith('+')) {
+      e164 = '+44' + e164;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    await db.saveSmsVerificationCode(e164, code);
+
+    await smsService.sendVerificationCodeSms({
+      phone: e164,
+      code,
+      fullName: fullName || 'Player'
+    });
+
+    res.json({
+      success: true,
+      message: `SMS verification code sent to ${cleanPhone}. Valid for 5 minutes.`,
+      expiresInSeconds: 300
+    });
+  } catch (err) {
+    console.error('[API] /auth/send-sms-code error:', err.message);
+    res.status(500).json({
+      success: false,
+      error: `Could not send SMS verification code: ${err.message}`
+    });
+  }
+});
+
 router.post('/auth/register', async (req, res) => {
   try {
     const { fullName, email, phone, teamCode, password, code } = req.body;
@@ -401,12 +448,33 @@ router.post('/auth/register', async (req, res) => {
       });
     }
 
-    const verification = await db.verifyEmailCode(cleanEmail, cleanCode);
-    if (!verification.valid) {
-      return res.status(400).json({
-        success: false,
-        error: verification.error || 'Verification code has expired or is invalid.'
-      });
+    // If registered with phone (and no teamCode), verify SMS code
+    if (phone && !teamCode) {
+      let e164 = String(phone).replace(/\s+/g, '').trim();
+      if (e164.startsWith('07')) e164 = '+44' + e164.slice(1);
+      else if (e164.startsWith('44') && !e164.startsWith('+')) e164 = '+' + e164;
+      else if (!e164.startsWith('+')) e164 = '+44' + e164;
+
+      const smsVerification = await db.verifySmsCode(e164, cleanCode);
+      if (!smsVerification.valid) {
+        // Fallback check against email code just in case
+        const emailVerification = await db.verifyEmailCode(cleanEmail, cleanCode);
+        if (!emailVerification.valid) {
+          return res.status(400).json({
+            success: false,
+            error: smsVerification.error || 'Verification code has expired or is invalid.'
+          });
+        }
+      }
+    } else {
+      // Registered with team code (or no phone), verify email code
+      const emailVerification = await db.verifyEmailCode(cleanEmail, cleanCode);
+      if (!emailVerification.valid) {
+        return res.status(400).json({
+          success: false,
+          error: emailVerification.error || 'Verification code has expired or is invalid.'
+        });
+      }
     }
 
     const user = await db.registerUser({ fullName, email: cleanEmail, phone, teamCode, password });

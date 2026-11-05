@@ -925,6 +925,34 @@ export const BettingProvider = ({ children }) => {
     }
   };
 
+  // Send 6-digit registration authentication code via SMS (Vonage)
+  const sendSmsRegistrationCode = async ({ phone, fullName }) => {
+    const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+    if (!cleanPhone || cleanPhone.length < 9) {
+      notify('Please enter a valid UK mobile number.', 'error');
+      return { success: false, error: 'Invalid UK mobile number' };
+    }
+
+    try {
+      const res = await fetch('/api/auth/send-sms-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, fullName })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        notify(data.error || 'Failed to send SMS verification code.', 'error');
+        return { success: false, error: data.error || 'Failed to send SMS verification code' };
+      }
+
+      notify(data.message || `SMS verification code sent to ${cleanPhone}. Valid for 5 minutes.`, 'success');
+      return { success: true, message: data.message, expiresInSeconds: data.expiresInSeconds || 300 };
+    } catch (err) {
+      notify(`SMS service error: ${err.message}`, 'error');
+      return { success: false, error: err.message };
+    }
+  };
+
   // Send 6-digit registration authentication code via email (Resend)
   const sendRegistrationCode = async ({ email, fullName }) => {
     const cleanEmail = String(email || '').trim().toLowerCase();
@@ -1278,6 +1306,7 @@ export const BettingProvider = ({ children }) => {
     authMode,
     setAuthMode,
     sendRegistrationCode,
+    sendSmsRegistrationCode,
     registerAccount,
     loginAccount,
     logoutAccount,

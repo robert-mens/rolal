@@ -40,6 +40,7 @@ export default function AccountPage({ onBack }) {
     authMode,
     setAuthMode,
     sendRegistrationCode,
+    sendSmsRegistrationCode,
     registerAccount,
     loginAccount,
     logoutAccount,
@@ -147,10 +148,18 @@ export default function AccountPage({ onBack }) {
     }
 
     setIsSendingCode(true);
-    const res = await sendRegistrationCode({
-      email: email.trim(),
-      fullName: fullName.trim(),
-    });
+    let res;
+    if (contactMethod === 'phone') {
+      res = await sendSmsRegistrationCode({
+        phone: phone.trim(),
+        fullName: fullName.trim(),
+      });
+    } else {
+      res = await sendRegistrationCode({
+        email: email.trim(),
+        fullName: fullName.trim(),
+      });
+    }
     setIsSendingCode(false);
 
     if (res.success) {
@@ -168,10 +177,18 @@ export default function AccountPage({ onBack }) {
     if (resendCooldown > 0 || isSendingCode) return;
     setFormError(null);
     setIsSendingCode(true);
-    const res = await sendRegistrationCode({
-      email: email.trim(),
-      fullName: fullName.trim(),
-    });
+    let res;
+    if (contactMethod === 'phone') {
+      res = await sendSmsRegistrationCode({
+        phone: phone.trim(),
+        fullName: fullName.trim(),
+      });
+    } else {
+      res = await sendRegistrationCode({
+        email: email.trim(),
+        fullName: fullName.trim(),
+      });
+    }
     setIsSendingCode(false);
 
     if (res.success) {
@@ -189,7 +206,7 @@ export default function AccountPage({ onBack }) {
 
     const cleanCode = authCode.replace(/\D/g, '').trim();
     if (cleanCode.length !== 6) {
-      setFormError('Please enter the full 6-digit authentication code sent to your email.');
+      setFormError(`Please enter the full 6-digit authentication code sent to your ${contactMethod === 'phone' ? 'mobile number via SMS' : 'email'}.`);
       return;
     }
     if (timeLeft <= 0) {
@@ -508,12 +525,12 @@ export default function AccountPage({ onBack }) {
                   {isSendingCode ? (
                     <>
                       <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                      <span>Sending Auth Code...</span>
+                      <span>{contactMethod === 'phone' ? 'Sending SMS Code...' : 'Sending Auth Code...'}</span>
                     </>
                   ) : (
                     <>
-                      <Mail className="w-4 h-4" />
-                      <span>Send Authentication Code</span>
+                      {contactMethod === 'phone' ? <Smartphone className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+                      <span>{contactMethod === 'phone' ? 'Send SMS Authentication Code' : 'Send Authentication Code'}</span>
                     </>
                   )}
                 </button>
@@ -523,14 +540,18 @@ export default function AccountPage({ onBack }) {
               <form onSubmit={handleVerifyAndRegister} className="space-y-4 py-1">
                 <div className="p-3 rounded-[2px] bg-[#161920] border border-[#FFC107]/40 flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#FFC107]/15 text-[#FFC107] flex items-center justify-center shrink-0 mt-0.5">
-                    <Mail className="w-4 h-4" />
+                    {contactMethod === 'phone' ? <Smartphone className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-[13px] font-bold text-[#F8F9FA] block">
-                      Verify Your Email Address
+                      {contactMethod === 'phone' ? 'Verify Your Mobile Number' : 'Verify Your Email Address'}
                     </span>
                     <span className="text-[12px] text-[#94A3B8] block mt-0.5 leading-snug">
-                      We sent a 6-digit authentication code to <strong className="text-[#FFC107]">{email}</strong>.
+                      {contactMethod === 'phone' ? (
+                        <>We sent a 6-digit authentication SMS to <strong className="text-[#FFC107]">{phone}</strong>.</>
+                      ) : (
+                        <>We sent a 6-digit authentication code to <strong className="text-[#FFC107]">{email}</strong>.</>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -627,7 +648,7 @@ export default function AccountPage({ onBack }) {
                     }}
                     className="text-[#94A3B8] hover:text-[#F8F9FA] underline font-medium"
                   >
-                    Change Email / Edit Details
+                    {contactMethod === 'phone' ? 'Change Phone / Edit Details' : 'Change Email / Edit Details'}
                   </button>
                 </div>
               </form>

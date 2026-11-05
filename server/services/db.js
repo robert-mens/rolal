@@ -816,6 +816,102 @@ async function findUserByEmail(email) {
   }
 }
 
+// In-memory SMS verification cache as fallback/buffer
+const memorySmsVerificationCodes = new Map();
+
+/**
+ * Saves a 6-digit SMS registration verification code with 5-minute expiry
+ */
+async function saveSmsVerificationCode(phone, code) {
+  const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+  const cleanCode = String(code || '').trim();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+  memorySmsVerificationCodes.set(cleanPhone, {
+    code: cleanCode,
+    expiresAt: expiresAt.getTime()
+  });
+
+  try {
+    await pool.query(
+      `INSERT INTO sms_verifications (phone, code, expires_at, created_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (phone) DO UPDATE SET
+         code = EXCLUDED.code,
+         expires_at = EXCLUDED.expires_at,
+         created_at = NOW()`,
+      [cleanPhone, cleanCode, expiresAt]
+    );
+  } catch (err) {
+    console.warn('[Aiven PostgreSQL] sms_verifications table notice:', err.message);
+  }
+
+  return { phone: cleanPhone, expiresAt };
+}
+
+/**
+ * Validates a 6-digit SMS registration verification code
+ */
+async function verifySmsCode(phone, code) {
+  const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+  const cleanCode = String(code || '').trim();
+  const now = Date.now();
+
+  let record = null;
+
+  try {
+    const res = await pool.query(
+      `SELECT phone, code, expires_at FROM sms_verifications WHERE phone = $1 LIMIT 1`,
+      [cleanPhone]
+    );
+    if (res.rowCount > 0) {
+      record = {
+        code: String(res.rows[0].code).trim(),
+        expiresAt: new Date(res.rows[0].expires_at).getTime()
+      };
+    }
+  } catch (err) {
+    console.warn('[Aiven PostgreSQL] sms_verifications query notice:', err.message);
+  }
+
+  if (!record && memorySmsVerificationCodes.has(cleanPhone)) {
+    record = memorySmsVerificationCodes.get(cleanPhone);
+  }
+
+  if (!record) {
+    return {
+      valid: false,
+      error: 'No SMS verification code was requested for this number. Please click "Send SMS Code".'
+    };
+  }
+
+  if (record.code !== cleanCode) {
+    return {
+      valid: false,
+      error: 'Invalid 6-digit SMS code. Please check your messages and try again.'
+    };
+  }
+
+  if (record.expiresAt < now) {
+    memorySmsVerificationCodes.delete(cleanPhone);
+    try {
+      await pool.query(`DELETE FROM sms_verifications WHERE phone = $1`, [cleanPhone]);
+    } catch (e) {}
+    return {
+      valid: false,
+      error: 'SMS code has expired (codes expire after 5 minutes). Please request a new code.'
+    };
+  }
+
+  // Code is valid — consume it
+  memorySmsVerificationCodes.delete(cleanPhone);
+  try {
+    await pool.query(`DELETE FROM sms_verifications WHERE phone = $1`, [cleanPhone]);
+  } catch (e) {}
+
+  return { valid: true };
+}
+
 module.exports = {
   pool,
   initDatabase,
@@ -837,5 +933,7 @@ module.exports = {
   saveEmailVerificationCode,
   verifyEmailCode,
   findUserByEmail,
+  saveSmsVerificationCode,
+  verifySmsCode,
   isDatabaseConnected: () => isConnected
 };
