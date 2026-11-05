@@ -402,17 +402,22 @@ async function registerUser({ fullName, email, phone, teamCode, password }) {
  * Authenticate an existing UK user account against Aiven PostgreSQL
  */
 async function loginUser({ email, password }) {
-  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanInput = String(email || '').trim();
+  const cleanEmail = cleanInput.toLowerCase();
+  const cleanPhoneDigits = cleanInput.replace(/\D/g, '');
+
   const res = await pool.query(
     `SELECT id, full_name, email, phone, team_code, team_name, registered_via, password_hash, jurisdiction, tier, balance, created_at
      FROM users
-     WHERE email = $1
+     WHERE LOWER(email) = $1
+        OR UPPER(id) = $2
+        OR (phone IS NOT NULL AND $3 <> '' AND REGEXP_REPLACE(phone, '[^0-9]', '', 'g') = $3)
      LIMIT 1`,
-    [cleanEmail]
+    [cleanEmail, cleanInput.toUpperCase(), cleanPhoneDigits]
   );
 
   if (res.rowCount === 0) {
-    throw new Error('No account found with this email address. Please create an account.');
+    throw new Error('No account found with this email, phone number, or User ID. Please check your details or create an account.');
   }
 
   const row = res.rows[0];

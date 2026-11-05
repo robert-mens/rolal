@@ -657,14 +657,14 @@ export default function AccountPage({ onBack }) {
             <form onSubmit={handleLoginSubmit} className="space-y-3">
               <div>
                 <label className="text-[11px] font-normal uppercase tracking-wider text-[#94A3B8] block mb-1">
-                  Registered Email Address
+                  Email Address, UK Phone Number, or User ID
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="oliver.harrison@rolalbet.co.uk"
+                  placeholder="e.g. james.sterling@rolalbet.co.uk or UK-529099"
                   className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
                 />
               </div>
