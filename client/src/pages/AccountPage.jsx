@@ -685,10 +685,40 @@ export default function AccountPage({ onBack }) {
 
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 rounded-[2px] bg-[#00875A] hover:bg-[#00704A] text-white font-bold text-[14px] uppercase tracking-wider transition-colors"
+                className="w-full py-2.5 px-4 rounded-[2px] bg-[#00875A] hover:bg-[#00704A] text-white font-bold text-[14px] uppercase tracking-wider transition-colors cursor-pointer"
               >
                 Sign In to Account
               </button>
+
+              <div className="pt-2 border-t border-[#2A2E35]">
+                <span className="text-[10px] text-[#94A3B8] uppercase tracking-wider block mb-1.5 font-bold">
+                  Quick Autofill (Verified Test Accounts):
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('james.sterling@rolalbet.co.uk');
+                      setPassword('RolalBet2026!');
+                      setFormError(null);
+                    }}
+                    className="px-2.5 py-1 rounded-[2px] bg-[#232832] hover:bg-[#2B313D] border border-[#2A2E35] text-[11px] text-[#FFC107] font-bold transition-colors cursor-pointer"
+                  >
+                    James Sterling (£1,972.50)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('oliver.harrison@rolalbet.co.uk');
+                      setPassword('RolalBet2026!');
+                      setFormError(null);
+                    }}
+                    className="px-2.5 py-1 rounded-[2px] bg-[#232832] hover:bg-[#2B313D] border border-[#2A2E35] text-[11px] text-[#F8F9FA] font-bold transition-colors cursor-pointer"
+                  >
+                    Oliver Harrison (£500.00)
+                  </button>
+                </div>
+              </div>
             </form>
           )}
         </div>

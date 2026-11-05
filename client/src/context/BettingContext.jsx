@@ -31,7 +31,7 @@ export const BettingProvider = ({ children }) => {
       return null;
     }
   });
-  const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
+  const [authMode, setAuthMode] = useState('login'); // default to 'login'
   const isAuthenticated = Boolean(user);
 
   const [leagues, setLeagues] = useState(DEFAULT_LEAGUES);
@@ -1264,6 +1264,9 @@ export const BettingProvider = ({ children }) => {
 
   const openAccount = (tab = 'profile') => {
     setAccountModalTab(tab);
+    if (!user) {
+      setAuthMode('login');
+    }
     setCurrentView('account');
   };
 
