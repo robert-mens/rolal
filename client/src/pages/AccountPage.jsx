@@ -225,7 +225,7 @@ export default function AccountPage({ onBack }) {
     });
     setIsVerifyingCode(false);
 
-    if (res.success && betslip.length > 0) {
+    if (res.success) {
       setCurrentView('home');
     } else if (!res.success && res.error) {
       setFormError(res.error);
@@ -664,7 +664,7 @@ export default function AccountPage({ onBack }) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. james.sterling@rolalbet.co.uk or UK-529099"
+                  placeholder="Enter email, UK mobile, or User ID"
                   className="w-full bg-[#161920] border border-[#2A2E35] focus:border-[#FFC107] rounded-[2px] px-3 py-2 text-[14px] text-[#F8F9FA] placeholder:text-[#64748B] focus:outline-none"
                 />
               </div>
