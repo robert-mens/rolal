@@ -37,6 +37,17 @@ function hashPassword(password) {
 async function initDatabase() {
   const client = await pool.connect();
   try {
+    // Quick existence check to prevent DDL locks during serverless cold starts
+    const tableCheck = await client.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_name = 'users' LIMIT 1"
+    );
+
+    if (tableCheck.rowCount > 0) {
+      isConnected = true;
+      console.log('[Aiven PostgreSQL] Connected & schema verified (existing tables)');
+      return true;
+    }
+
     await client.query('BEGIN');
 
     // 1. Users table
