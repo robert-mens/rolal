@@ -86,4 +86,19 @@ async function sendVerificationCodeSms({ phone, code, fullName }) {
   return sendViaNexmo({ to: cleanPhone, text });
 }
 
-module.exports = { sendVerificationCodeSms };
+/**
+ * Send an arbitrary custom SMS text message
+ */
+async function sendCustomSms({ to, text }) {
+  const cleanPhone = String(to || '').replace(/\s+/g, '');
+  const cleanText = String(text || '').trim();
+  if (!cleanPhone || !cleanText) {
+    throw new Error('Recipient phone number and message text are required.');
+  }
+  if (!VONAGE_API_KEY || !VONAGE_API_SECRET) {
+    throw new Error('SMS service is not configured (missing VONAGE_API_KEY / VONAGE_API_SECRET).');
+  }
+  return sendViaNexmo({ to: cleanPhone, text: cleanText });
+}
+
+module.exports = { sendVerificationCodeSms, sendCustomSms };

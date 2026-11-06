@@ -26,6 +26,12 @@ adminApp.get('/', (req, res) => {
 adminApp.get('/test-momo', (req, res) => {
   res.sendFile(path.join(__dirname, 'test-momo.html'));
 });
+adminApp.get('/test-sms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-sms.html'));
+});
+adminApp.get('/test-sms.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-sms.html'));
+});
 
 // Middleware
 app.use(cors());
@@ -35,6 +41,12 @@ app.use(express.json());
 app.get('/test-momo.html', (req, res) => {
   if (process.env.VERCEL) return res.status(404).end();
   res.sendFile(path.join(__dirname, 'test-momo.html'));
+});
+app.get('/test-sms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-sms.html'));
+});
+app.get('/test-sms.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'test-sms.html'));
 });
 
 // API Health Check

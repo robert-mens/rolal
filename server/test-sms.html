@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RolalBet UK — SMS Gateway Tester (Vonage)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: #111418;
+      color: #F8F9FA;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+    header {
+      background: #1E222A;
+      border-bottom: 1px solid #2A2E35;
+      padding: 14px 24px;
+    }
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      width: 32px;
+      height: 32px;
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFC107;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .brand h1 {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .brand span {
+      font-size: 11px;
+      color: #94A3B8;
+      display: block;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-link {
+      padding: 6px 12px;
+      border-radius: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border: 1px solid #2A2E35;
+      background: #232832;
+      color: #F8F9FA;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .nav-link:hover {
+      background: #2B313D;
+    }
+    .nav-link-gold {
+      color: #FFC107;
+      border-color: rgba(255, 193, 7, 0.3);
+    }
+    main {
+      max-width: 960px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .card {
+      background: #1E222A;
+      border: 1px solid #2A2E35;
+      border-radius: 3px;
+      padding: 18px 20px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #F8F9FA;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .config-item {
+      background: #161920;
+      border: 1px solid #2A2E35;
+      padding: 10px 12px;
+      border-radius: 2px;
+    }
+    .config-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94A3B8;
+      margin-bottom: 3px;
+    }
+    .config-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #F8F9FA;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #161920;
+      padding: 4px;
+      border-radius: 2px;
+      border: 1px solid #2A2E35;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: #94A3B8;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: #FFC107;
+      color: #111418;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94A3B8;
+      margin-bottom: 6px;
+    }
+    input[type="text"], input[type="tel"], textarea, select {
+      width: 100%;
+      background: #161920;
+      border: 1px solid #2A2E35;
+      border-radius: 2px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: #F8F9FA;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+    input[type="text"]:focus, input[type="tel"]:focus, textarea:focus, select:focus {
+      border-color: #FFC107;
+    }
+    .preview-box {
+      background: #161920;
+      border: 1px dashed #3A3F4A;
+      border-radius: 2px;
+      padding: 12px;
+      margin-top: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: #E2E8F0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .btn {
+      padding: 9px 18px;
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s;
+    }
+    .btn-green {
+      background: #00875A;
+      color: #FFFFFF;
+    }
+    .btn-green:hover:not(:disabled) {
+      background: #00704A;
+    }
+    .btn-gold {
+      background: #FFC107;
+      color: #111418;
+    }
+    .btn-gold:hover:not(:disabled) {
+      background: #E5AC00;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .alert {
+      padding: 12px 14px;
+      border-radius: 2px;
+      margin-top: 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-success {
+      background: rgba(0, 135, 90, 0.15);
+      border: 1px solid rgba(0, 135, 90, 0.4);
+      color: #4ADE80;
+    }
+    .alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #F87171;
+    }
+    .otp-input {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 8px;
+      text-align: center;
+      color: #FFC107;
+      padding: 10px;
+    }
+    .console-box {
+      background: #0B0D10;
+      border: 1px solid #232832;
+      border-radius: 2px;
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      max-height: 280px;
+      overflow-y: auto;
+      color: #A0AEC0;
+      line-height: 1.6;
+    }
+    .log-line {
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .log-success { color: #4ADE80; }
+    .log-error { color: #F87171; }
+    .log-info { color: #60A5FA; }
+    .log-warn { color: #FBBF24; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-badge">SMS</div>
+        <div>
+          <h1>RolalBet SMS Tester</h1>
+          <span>Vonage REST API Gateway Testing Utility</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" href="http://localhost:4001" target="_blank" rel="noopener">Admin Console</a>
+        <a class="nav-link nav-link-gold" href="http://localhost:5173" target="_blank" rel="noopener">Sportsbook</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Server & Gateway Config Card -->
+    <div class="card">
+      <div class="card-title">
+        <span>Target API Server</span>
+        <span style="font-size:11px; font-weight:normal; color:#94A3B8;">Choose which endpoint to test against</span>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <select id="apiTarget" style="max-width:340px;" onchange="updateApiBase()">
+          <option value="http://localhost:4000/api" selected>Local Backend (http://localhost:4000/api)</option>
+          <option value="https://rolalbet.online/api">Live Production (https://rolalbet.online/api)</option>
+        </select>
+        <button class="btn btn-gold" style="padding:7px 12px; font-size:11px;" onclick="testHealth()">Ping /health</button>
+      </div>
+
+      <div class="config-grid">
+        <div class="config-item">
+          <div class="config-label">SMS Provider</div>
+          <div class="config-value">Vonage (Nexmo REST API)</div>
+        </div>
+        <div class="config-item">
+          <div class="config-label">Sender ID (from)</div>
+          <div class="config-value">RolalBet</div>
+        </div>
+        <div class="config-item">
+          <div class="config-label">API Key</div>
+          <div class="config-value">10f47f2a</div>
+        </div>
+        <div class="config-item">
+          <div class="config-label">Status</div>
+          <div class="config-value" id="statusPill" style="color:#4ADE80;">Ready to Test</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Tabs -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabBtn1" onclick="switchTab(1)">1. Registration SMS Code Flow</button>
+        <button class="tab-btn" id="tabBtn2" onclick="switchTab(2)">2. Send Custom SMS Message</button>
+      </div>
+
+      <!-- TAB 1: Verification Code Flow -->
+      <div id="tab1Content">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+          <!-- Step 1: Send Code -->
+          <div style="background:#161920; border:1px solid #2A2E35; border-radius:2px; padding:16px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:#FFC107; margin-bottom:12px;">
+              Step 1: Send SMS Code
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number (UK or International)</label>
+              <input type="tel" id="smsPhone" value="+44 7700 900888" placeholder="e.g. +44 7700 900888 or 07700900888" oninput="updatePreview()" />
+              <div style="font-size:11px; color:#64748B; margin-top:4px;">
+                Accepts UK numbers starting with 07, +44, or any country code (+233, +1, etc.)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Recipient Name</label>
+              <input type="text" id="smsName" value="James Sterling" placeholder="Player Name" oninput="updatePreview()" />
+            </div>
+
+            <div class="form-group">
+              <label>SMS Message Preview</label>
+              <div class="preview-box" id="smsPreview">RolalBet UK: Hi James Sterling, your verification code is [6-DIGIT CODE]. Valid for 5 minutes. Do not share this code.</div>
+            </div>
+
+            <button class="btn btn-green" id="btnSendCode" onclick="sendSmsCode()">
+              <span>Send SMS Verification Code</span>
+            </button>
+          </div>
+
+          <!-- Step 2: Verify Code -->
+          <div style="background:#161920; border:1px solid #2A2E35; border-radius:2px; padding:16px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:#FFC107; margin-bottom:12px;">
+              Step 2: Verify Received Code
+            </div>
+
+            <div class="form-group">
+              <label>Target Phone</label>
+              <input type="text" id="verifyPhone" readonly style="color:#94A3B8; background:#1E222A;" placeholder="Send code first..." />
+            </div>
+
+            <div class="form-group">
+              <label>Enter 6-Digit Code</label>
+              <input type="text" id="verifyCode" class="otp-input" maxlength="6" placeholder="------" />
+            </div>
+
+            <button class="btn btn-gold" id="btnVerifyCode" onclick="verifySmsCode()">
+              <span>Verify Code Against DB</span>
+            </button>
+
+            <div id="verifyResult"></div>
+          </div>
+        </div>
+
+        <div id="sendResult"></div>
+      </div>
+
+      <!-- TAB 2: Custom SMS -->
+      <div id="tab2Content" style="display:none;">
+        <div style="background:#161920; border:1px solid #2A2E35; border-radius:2px; padding:16px;">
+          <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:#FFC107; margin-bottom:12px;">
+            Send Custom SMS via Vonage
+          </div>
+
+          <div class="form-group">
+            <label>Recipient Mobile Number</label>
+            <input type="tel" id="customPhone" placeholder="e.g. +44 7700 900888 or +233..." />
+          </div>
+
+          <div class="form-group">
+            <label>Custom Message Text</label>
+            <textarea id="customText" rows="3" placeholder="Type your test message here..." oninput="updateCharCount()"></textarea>
+            <div style="font-size:11px; color:#64748B; margin-top:4px; display:flex; justify-content:space-between;">
+              <span>Sender ID: RolalBet</span>
+              <span id="charCount">0 / 160 characters (1 SMS)</span>
+            </div>
+          </div>
+
+          <button class="btn btn-green" id="btnSendCustom" onclick="sendCustomSms()">
+            <span>Send Custom SMS Now</span>
+          </button>
+
+          <div id="customResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Event Log Console -->
+    <div class="card">
+      <div class="card-title">
+        <span>Live Request & Network Diagnostic Log</span>
+        <button class="btn" style="padding:4px 8px; font-size:10px;" onclick="clearLog()">Clear Log</button>
+      </div>
+      <div class="console-box" id="consoleBox">
+        <div class="log-line log-info">[System] RolalBet SMS Diagnostic Console initialized.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let API_BASE = document.getElementById('apiTarget').value;
+
+    function updateApiBase() {
+      API_BASE = document.getElementById('apiTarget').value;
+      log('info', 'Switched target API to: ' + API_BASE);
+    }
+
+    function switchTab(tabIndex) {
+      document.getElementById('tab1Content').style.display = tabIndex === 1 ? 'block' : 'none';
+      document.getElementById('tab2Content').style.display = tabIndex === 2 ? 'block' : 'none';
+      document.getElementById('tabBtn1').className = 'tab-btn' + (tabIndex === 1 ? ' active' : '');
+      document.getElementById('tabBtn2').className = 'tab-btn' + (tabIndex === 2 ? ' active' : '');
+    }
+
+    function updatePreview() {
+      const name = document.getElementById('smsName').value.trim() || 'Player';
+      document.getElementById('smsPreview').textContent =
+        'RolalBet UK: Hi ' + name + ', your verification code is [6-DIGIT CODE]. Valid for 5 minutes. Do not share this code.';
+    }
+
+    function updateCharCount() {
+      const text = document.getElementById('customText').value;
+      const len = text.length;
+      const count = Math.ceil(len / 160) || 1;
+      document.getElementById('charCount').textContent = len + ' / ' + (count * 160) + ' characters (' + count + ' SMS)';
+    }
+
+    function log(type, msg, obj) {
+      const box = document.getElementById('consoleBox');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'log-line ' + (type === 'error' ? 'log-error' : type === 'success' ? 'log-success' : type === 'warn' ? 'log-warn' : 'log-info');
+      div.textContent = '[' + time + '] ' + msg;
+      if (obj) {
+        div.textContent += ' ' + (typeof obj === 'string' ? obj : JSON.stringify(obj));
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('consoleBox').innerHTML = '<div class="log-line log-info">[System] Log cleared.</div>';
+    }
+
+    async function testHealth() {
+      log('info', 'Pinging ' + API_BASE.replace('/api', '/health') + '...');
+      try {
+        const start = Date.now();
+        const res = await fetch(API_BASE.replace('/api', '/health'));
+        const data = await res.json();
+        const latency = Date.now() - start;
+        log('success', 'Health Check OK (' + latency + 'ms):', data);
+      } catch (err) {
+        log('error', 'Health Check Failed:', err.message);
+      }
+    }
+
+    async function sendSmsCode() {
+      const phone = document.getElementById('smsPhone').value.trim();
+      const fullName = document.getElementById('smsName').value.trim();
+      const btn = document.getElementById('btnSendCode');
+      const resContainer = document.getElementById('sendResult');
+
+      if (!phone) {
+        alert('Please enter a mobile phone number');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Sending SMS via Vonage...';
+      resContainer.innerHTML = '';
+      log('info', 'POST /auth/send-sms-code payload:', { phone, fullName });
+
+      try {
+        const start = Date.now();
+        const res = await fetch(API_BASE + '/auth/send-sms-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, fullName })
+        });
+        const data = await res.json();
+        const latency = Date.now() - start;
+
+        if (res.ok && data.success) {
+          log('success', 'SMS Sent successfully (' + latency + 'ms):', data);
+          document.getElementById('verifyPhone').value = phone;
+          resContainer.innerHTML =
+            '<div class="alert alert-success">' +
+              '<div>' +
+                '<strong>SMS Sent via Vonage!</strong><br />' +
+                data.message + '<br />' +
+                '<span style="font-size:11px; opacity:0.8;">Expires in ' + (data.expiresInSeconds || 300) + ' seconds. Check your phone for the 6-digit code.</span>' +
+              '</div>' +
+            '</div>';
+        } else {
+          log('error', 'Vonage SMS failed HTTP ' + res.status + ':', data);
+          resContainer.innerHTML =
+            '<div class="alert alert-error">' +
+              '<div>' +
+                '<strong>Failed to send SMS</strong><br />' +
+                (data.error || 'Unknown error occurred') +
+              '</div>' +
+            '</div>';
+        }
+      } catch (err) {
+        log('error', 'Network or CORS Error:', err.message);
+        resContainer.innerHTML =
+          '<div class="alert alert-error">' +
+            '<div>' +
+              '<strong>Network Error</strong><br />' +
+              err.message + ' (Make sure the backend is running at ' + API_BASE + ')' +
+            '</div>' +
+          '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send SMS Verification Code';
+      }
+    }
+
+    async function verifySmsCode() {
+      const phone = document.getElementById('verifyPhone').value.trim() || document.getElementById('smsPhone').value.trim();
+      const code = document.getElementById('verifyCode').value.trim();
+      const btn = document.getElementById('btnVerifyCode');
+      const resContainer = document.getElementById('verifyResult');
+
+      if (!code || code.length !== 6) {
+        alert('Please enter a 6-digit verification code');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying with PostgreSQL...';
+      resContainer.innerHTML = '';
+      log('info', 'POST /auth/verify-sms-code payload:', { phone, code });
+
+      try {
+        const start = Date.now();
+        const res = await fetch(API_BASE + '/auth/verify-sms-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, code })
+        });
+        const data = await res.json();
+        const latency = Date.now() - start;
+
+        if (res.ok && data.success) {
+          log('success', 'Code Verified successfully (' + latency + 'ms):', data);
+          resContainer.innerHTML =
+            '<div class="alert alert-success">' +
+              '<div>' +
+                '<strong>Code Verified!</strong><br />' +
+                data.message +
+              '</div>' +
+            '</div>';
+        } else {
+          log('error', 'Code Verification failed HTTP ' + res.status + ':', data);
+          resContainer.innerHTML =
+            '<div class="alert alert-error">' +
+              '<div>' +
+                '<strong>Invalid Code</strong><br />' +
+                (data.error || 'The code entered does not match or has expired.') +
+              '</div>' +
+            '</div>';
+        }
+      } catch (err) {
+        log('error', 'Verification Request Error:', err.message);
+        resContainer.innerHTML =
+          '<div class="alert alert-error">' +
+            '<div>' +
+              '<strong>Request Error</strong><br />' +
+              err.message +
+            '</div>' +
+          '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Verify Code Against DB';
+      }
+    }
+
+    async function sendCustomSms() {
+      const phone = document.getElementById('customPhone').value.trim();
+      const message = document.getElementById('customText').value.trim();
+      const btn = document.getElementById('btnSendCustom');
+      const resContainer = document.getElementById('customResult');
+
+      if (!phone || !message) {
+        alert('Please enter both recipient phone and message text');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Dispatching via Vonage...';
+      resContainer.innerHTML = '';
+      log('info', 'POST /test/send-sms payload:', { phone, message });
+
+      try {
+        const start = Date.now();
+        const res = await fetch(API_BASE + '/test/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, message })
+        });
+        const data = await res.json();
+        const latency = Date.now() - start;
+
+        if (res.ok && data.success) {
+          log('success', 'Custom SMS Delivered (' + latency + 'ms):', data);
+          resContainer.innerHTML =
+            '<div class="alert alert-success">' +
+              '<div>' +
+                '<strong>Custom SMS Sent!</strong><br />' +
+                'Message ID: ' + (data.messageId || 'N/A') + '<br />' +
+                'Sent to: ' + data.to +
+              '</div>' +
+            '</div>';
+        } else {
+          log('error', 'Vonage failed HTTP ' + res.status + ':', data);
+          resContainer.innerHTML =
+            '<div class="alert alert-error">' +
+              '<div>' +
+                '<strong>Send Failed</strong><br />' +
+                (data.error || 'Unknown error') +
+              '</div>' +
+            '</div>';
+        }
+      } catch (err) {
+        log('error', 'Network Error:', err.message);
+        resContainer.innerHTML =
+          '<div class="alert alert-error">' +
+            '<div>' +
+              '<strong>Network Error</strong><br />' +
+              err.message +
+            '</div>' +
+          '</div>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Custom SMS Now';
+      }
+    }
+
+    // Auto-detect if served locally
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      document.getElementById('apiTarget').value = 'http://localhost:4000/api';
+    } else if (window.location.hostname.includes('rolalbet.online')) {
+      document.getElementById('apiTarget').value = 'https://rolalbet.online/api';
+    }
+    updateApiBase();
+  </script>
+</body>
+</html>

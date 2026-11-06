@@ -431,6 +431,86 @@ router.post('/auth/send-sms-code', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/verify-sms-code
+ * Test & verify a 6-digit SMS verification code against PostgreSQL / cache
+ */
+router.post('/auth/verify-sms-code', async (req, res) => {
+  try {
+    const { phone, code } = req.body;
+    const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+    const cleanCode = String(code || '').trim();
+
+    if (!cleanPhone || !cleanCode) {
+      return res.status(400).json({ success: false, error: 'Phone number and 6-digit code are required.' });
+    }
+
+    let e164 = cleanPhone;
+    if (e164.startsWith('07')) {
+      e164 = '+44' + e164.slice(1);
+    } else if (e164.startsWith('44') && !e164.startsWith('+')) {
+      e164 = '+' + e164;
+    } else if (!e164.startsWith('+')) {
+      e164 = '+44' + e164;
+    }
+
+    const verification = await db.verifySmsCode(e164, cleanCode);
+    if (!verification.valid) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        error: verification.error || 'Verification code is invalid or has expired.'
+      });
+    }
+
+    res.json({
+      success: true,
+      valid: true,
+      message: `Code ${cleanCode} successfully verified for ${e164}!`,
+      phone: e164,
+      verifiedAt: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/test/send-sms
+ * Direct test route to send any SMS message via Vonage
+ */
+router.post('/test/send-sms', async (req, res) => {
+  try {
+    const { phone, message } = req.body;
+    const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
+    const cleanMessage = String(message || '').trim();
+
+    if (!cleanPhone || !cleanMessage) {
+      return res.status(400).json({ success: false, error: 'Phone number and message text are required.' });
+    }
+
+    let e164 = cleanPhone;
+    if (e164.startsWith('07')) {
+      e164 = '+44' + e164.slice(1);
+    } else if (e164.startsWith('44') && !e164.startsWith('+')) {
+      e164 = '+' + e164;
+    } else if (!e164.startsWith('+')) {
+      e164 = '+44' + e164;
+    }
+
+    const result = await smsService.sendCustomSms({ to: e164, text: cleanMessage });
+    res.json({
+      success: true,
+      messageId: result.messageId,
+      to: e164,
+      text: cleanMessage,
+      sentAt: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 router.post('/auth/register', async (req, res) => {
   try {
     const { fullName, email, phone, teamCode, password, code } = req.body;
