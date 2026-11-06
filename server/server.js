@@ -42,10 +42,9 @@ app.get('/test-momo.html', (req, res) => {
   if (process.env.VERCEL) return res.status(404).end();
   res.sendFile(path.join(__dirname, 'test-momo.html'));
 });
-app.get('/test-sms', (req, res) => {
-  res.sendFile(path.join(__dirname, 'test-sms.html'));
-});
-app.get('/test-sms.html', (req, res) => {
+// Standalone SMS Test Page (disabled on hosted deployments)
+app.get(['/test-sms', '/test-sms.html'], (req, res) => {
+  if (process.env.NETLIFY || process.env.VERCEL) return res.status(404).end();
   res.sendFile(path.join(__dirname, 'test-sms.html'));
 });
 

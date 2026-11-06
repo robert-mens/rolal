@@ -436,6 +436,7 @@ router.post('/auth/send-sms-code', async (req, res) => {
  * Test & verify a 6-digit SMS verification code against PostgreSQL / cache
  */
 router.post('/auth/verify-sms-code', async (req, res) => {
+  if (IS_HOSTED) return res.status(404).end();
   try {
     const { phone, code } = req.body;
     const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();
@@ -480,6 +481,7 @@ router.post('/auth/verify-sms-code', async (req, res) => {
  * Direct test route to send any SMS message via Vonage
  */
 router.post('/test/send-sms', async (req, res) => {
+  if (IS_HOSTED) return res.status(404).end();
   try {
     const { phone, message } = req.body;
     const cleanPhone = String(phone || '').replace(/\s+/g, '').trim();

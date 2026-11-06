@@ -311,11 +311,8 @@
         <span style="font-size:11px; font-weight:normal; color:#94A3B8;">Choose which endpoint to test against</span>
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-        <select id="apiTarget" style="max-width:340px;" onchange="updateApiBase()">
-          <option value="http://localhost:4000/api" selected>Local Backend (http://localhost:4000/api)</option>
-          <option value="https://rolalbet.online/api">Live Production (https://rolalbet.online/api)</option>
-        </select>
-        <button class="btn btn-gold" style="padding:7px 12px; font-size:11px;" onclick="testHealth()">Ping /health</button>
+        <input type="text" id="apiTarget" value="http://localhost:4000/api" readonly style="max-width:340px; background:#161920; color:#FFC107; font-weight:bold;" />
+        <button class="btn btn-gold" style="padding:7px 12px; font-size:11px;" onclick="testHealth()">Ping Local /health</button>
       </div>
 
       <div class="config-grid">
@@ -687,12 +684,7 @@
       }
     }
 
-    // Auto-detect if served locally
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      document.getElementById('apiTarget').value = 'http://localhost:4000/api';
-    } else if (window.location.hostname.includes('rolalbet.online')) {
-      document.getElementById('apiTarget').value = 'https://rolalbet.online/api';
-    }
+    document.getElementById('apiTarget').value = 'http://localhost:4000/api';
     updateApiBase();
   </script>
 </body>
